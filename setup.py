@@ -8,7 +8,7 @@ if float(sys.version[:3])<2.7 or float(sys.version[:3])>=2.8:
 
 
 setup(name='NucleoATAC',
-    version='0.1.0',
+    version='0.1.1',
     description='python package for calling nucleosomes with ATAC-Seq',
     classifiers=[
         'Development Status :: 3 - Alpha',
