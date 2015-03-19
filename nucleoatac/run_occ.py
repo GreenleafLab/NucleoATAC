@@ -79,6 +79,7 @@ def run_occ(args, bases = 5000000):
     """
     chrs = read_chrom_sizes_from_bam(args.bam)
     chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = 75)
+    chunks.merge()
     fragment_dist = FragmentMixDistribution(0, upper = args.upper)
     if args.sizes is not None:
         tmp = FragmentSizes.open(args.sizes)

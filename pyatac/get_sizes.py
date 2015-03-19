@@ -22,6 +22,7 @@ def get_sizes(args):
     sizes = FragmentSizes(lower = args.lower, upper = args.upper, atac = args.atac)
     if args.bed:
         chunks = ChunkList.read(args.bed)
+        chunks.merge()
         sizes.calculateSizes(args.bam, chunks)
     else:
         sizes.calculateSizes(args.bam)

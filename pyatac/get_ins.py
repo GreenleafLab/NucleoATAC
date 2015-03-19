@@ -70,6 +70,7 @@ def get_ins(args, bases = 50000, splitsize = 1000):
         sets = chunks.split(items = bases/splitsize)
     else:
         chunks = ChunkList.read(args.bed)
+        chunks.merge()
         sets = chunks.split(bases = bases)
     pool1 = mp.Pool(processes = max(1,args.cores-1))
     out_handle = open(args.out + '.ins.bedgraph','w')

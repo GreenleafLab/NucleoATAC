@@ -181,6 +181,7 @@ def run_nuc(args, bases = 5000000):
     chrs = read_chrom_sizes_from_bam(args.bam)
     pwm = PWM.open(args.pwm)
     chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = vmat.mat.shape[1] + vmat.upper/2 + max(pwm.up,pwm.down), min_length = args.nuc_sep * 2)
+    chunks.merge()
     fragment_dist = FragmentMixDistribution(0, upper = vmat.upper)
     if args.sizes is not None:
         tmp = FragmentSizes.open(args.sizes)

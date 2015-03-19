@@ -96,7 +96,7 @@ class ChunkList(list):
     def isSorted(self):
         """check that regions are sorted"""
         return all([_chunkCompare(self[i],self[i+1])==-1 for i in xrange(len(self)-1)])
-    def merge(self, new = False, sep = 0):
+    def merge(self, new = False, sep = -1):
         """Merge overlapping or nearby regions"""
         if not self.isSorted():
             self.sort()

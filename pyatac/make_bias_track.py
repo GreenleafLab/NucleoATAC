@@ -62,6 +62,7 @@ def make_bias_track(args, bases = 50000, splitsize = 1000):
         sets = chunks.split(items = bases/splitsize)
     else:
         chunks = ChunkList.read(args.bed)
+        chunks.merge()
         sets = chunks.split(bases = bases)
     pool = mp.Pool(processes = min(1,args.cores-1))
     out_handle = open(args.out + '.Scores.bedgraph','w')
