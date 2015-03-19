@@ -1,6 +1,7 @@
 include README.md
 include LICENSE
 include nucleoatac/vplot/standard_vplot.VMat
+include pyatac/pwm/*.txt
 include example/*
 include nucleoatac/multinomial_cov.pyx
 include pyatac/fragments.pyx*
