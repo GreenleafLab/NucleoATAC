@@ -2,19 +2,14 @@ from setuptools import setup
 import sys
 
 
-def readme():
-    with open('README.md') as f:
-        return f.read()
-
 if float(sys.version[:3])<2.7 or float(sys.version[:3])>=2.8:
         sys.stderr.write("CRITICAL: Python version must be 2.7!\n")
         sys.exit(1)
 
 
-setup(name='pyatac',
+setup(name='NucleoATAC',
     version='0.0',
-    description='python package for working with ATAC-Seq',
-    long_description=readme(),
+    description='python package for calling nucleosomes with ATAC-Seq',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: MIT License',
