@@ -1,24 +1,23 @@
 from unittest import TestCase
+import numpy as np
 
-import nucleoatac.PyATAC as PA
 import nucleoatac.NucleosomeCalling as Nuc
 import nucleoatac.VMat as V
-import numpy as np
-import pysam
+from pyatac.chunkmat2d import FragmentMat2D
+from pyatac.chunk import ChunkList
+
+
 
 class Test_xcor(TestCase):
     """class to test occupancy"""
     def setUp(self):
         """setup Test_occupancy class by establishing parameters"""
-        bed_list = PA.read_bed('example/example.bed')
+        bed_list = ChunkList.read('example/example.bed')
         self.chunk = bed_list[0]
-        bam = pysam.Samfile('example/example.bam','rb')
         self.vmat = V.VMat.open('example/example.VMat')
-        readlist = PA.ReadList(self.chunk.chrom, self.chunk.start - self.vmat.w, self.chunk.end + self.vmat.w) 
-        readlist.extract_reads(bam)
         self.vmat = V.VMat.open('example/example.VMat')
-        self.mat = PA.ReadMat2D(self.chunk.chrom,self.chunk.start-self.vmat.w,self.chunk.end+self.vmat.w,self.vmat.i_lower,self.vmat.i_upper) 
-        self.mat.makeReadMat(readlist)
+        self.mat = FragmentMat2D(self.chunk.chrom,self.chunk.start-self.vmat.w,self.chunk.end+self.vmat.w,self.vmat.i_lower,self.vmat.i_upper)
+        self.mat.makeFragmentMat('example/example.bam')
         self.signal = Nuc.SignalTrack(self.chunk.chrom,self.chunk.start,self.chunk.end)
         self.signal.calculateSignal(self.mat, self.vmat)
     def test_signal_calc1(self):

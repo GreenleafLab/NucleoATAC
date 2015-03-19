@@ -1,5 +1,5 @@
 include README.md
 include LICENSE
-include nucleoatac/standard_vplot.VMat
+include nucleoatac/vplot/standard_vplot.VMat
 include example/*
 

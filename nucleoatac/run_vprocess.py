@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Takes as input a raw vplot and processes it for use in nucleosome calling
 Use insert distribution at nuclesomal regions in peaks for normalization
@@ -8,29 +7,23 @@ Use insert distribution at nuclesomal regions in peaks for normalization
 
 ##### IMPORT MODULES #####
 # import necessary for python
-import os
-import sys
 import matplotlib as mpl
 mpl.use('PS')
-import VMat as V
-import PyATAC as PA
-import numpy as np
+import nucleoatac.VMat as V
+from pyatac.fragmentsizes import FragmentSizes
 
 def run_vprocess(args):
     """process vplot
 
     """
-    #Load vplot
-    if args.vplot is None:
-        args.vplot = os.path.dirname(os.path.realpath(sys.argv[0]))+'/../nucleoatac/standard_vplot.VMat'
     vmat=V.VMat.open(args.vplot)
     #Trim, Symmetrize
     vmat.trim(args.lower,args.upper,args.flank)
     vmat.symmetrize()
     #insert size norm
-    if args.isizes is not None:
-     #read in insertsizes
-        nuc_dist = PA.InsertSizes.open(args.isizes)
+    if args.sizes is not None:
+     #read in fragmentsizes
+        nuc_dist = FragmentSizes.open(args.sizes)
         vmat.norm_y(nuc_dist)
     ##Smooth
     if args.smooth > 0:
