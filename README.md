@@ -12,7 +12,7 @@ functions (not necessarily tied to nucleosome calling but useful for working wit
 
 
 Instruction for use:
-See Wiki
+See Wiki:  https://github.com/GreenleafLab/NucleoATAC/wiki
 
 OS requirements:
 Tested only on Ubuntu OS.
