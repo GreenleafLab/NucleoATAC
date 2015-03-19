@@ -29,7 +29,7 @@ Python Dependencies:
 Installation:
 
 1. Clone repository.
-2. Run `python setup.py install` 
+2. Use pip -- `pip install .` inside NucleoATAC directory.  Alternatively you could use `python setup.py install`.
 
 
 
