@@ -29,7 +29,7 @@ class Test_ReadMat2D(TestCase):
         """test get function for fragmentmat"""
         x = FragmentMat2D('chr1',500,1000,0,200)
         x.mat[100,5] = 1
-        self.assertTrue(np.array_equal(x.get(start=505,end=507,i_lower=100,i_upper=102),np.array([[1,0],[0,0]])))
+        self.assertTrue(np.array_equal(x.get(start=505,end=507,lower=100,upper=102),np.array([[1,0],[0,0]])))
 
 
 class Test_BiasMat(TestCase):
@@ -56,7 +56,7 @@ class Test_BiasMat(TestCase):
         self.assertTrue(abs(correct - self.biasmat.mat[51,220]) < 0.01*correct)
     def test_normByInsertDist(self):
         """test that normalization by insert distribution works as expected"""
-        isizes = FragmentSizes(i_lower=100,i_upper=200, vals = np.array(range(100,200)))
+        isizes = FragmentSizes(lower=100,upper=200, vals = np.array(range(100,200)))
         self.biasmat.normByInsertDist(isizes)
         a1 = self.biastrack.get(pos = self.biasmat.start -50)
         a2 = self.biastrack.get(pos = self.biasmat.start + 50)
@@ -74,7 +74,7 @@ class Test_Ins(TestCase):
         ins1 = InsertionTrack(self.chunk.chrom, self.chunk.start, self.chunk.end)
         ins1.calculateInsertions('example/single_read.bam')
         mat = FragmentMat2D(self.chunk.chrom,self.chunk.start,self.chunk.end,0,100)
-        mat.makeFragmentMat(self.fragmentlist)
+        mat.makeFragmentMat('example/single_read.bam')
         ins2 = mat.getIns()
         self.assertTrue(np.array_equal(ins1.get(self.chunk.start+100,self.chunk.start+300),ins2.get(self.chunk.start+100,self.chunk.start+300)))
 
