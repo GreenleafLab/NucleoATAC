@@ -156,9 +156,6 @@ def add_nuc_parser( subparsers):
     group1.add_argument('--out', metavar='basename',
                     help="give output basename", required = True)
     group3 = parser.add_argument_group('General options', '')
-    group3.add_argument('--pwm', metavar = 'pwm_file',
-                        help = 'PWM file with sequence preferences. Default is Human.PWM.txt in pyatac.pwm',
-                        default = "Human")
     group3.add_argument('--sizes', metavar = 'fragmentsizes_file',
                        help = "File with fragment size distribution.  Use if don't want calculation of fragment size")
     group3.add_argument('--occ_track', metavar = 'occ_file',
