@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Script with classes and functions for nucleosome calling.
 
@@ -7,44 +6,46 @@ Script with classes and functions for nucleosome calling.
 
 import numpy as np
 from scipy import optimize, signal
-import PyATAC as PA
-import Occupancy as Occ
 from copy import copy
 from bisect import bisect_left
-import pysam
-import bx.bbi.bigwig_file
-import pyximport; pyximport.install(setup_args={"include_dirs":np.get_include()})
-import multinomial_cov
+import pyximport; pyximport.install()
+from nucleoatac.multinomial_cov import calculateCov
+from nucleoatac.Occupancy import OccupancyTrack
+from pyatac.tracks import Track, CoverageTrack
+from pyatac.chunk import Chunk
+from pyatac.utils import call_peaks, reduce_peaks, read_chrom_sizes_from_fasta
+from pyatac.chunkmat2d import FragmentMat2D, BiasMat2D
+from pyatac.bias import InsertionBiasTrack, PWM
 
 
 import warnings
 warnings.filterwarnings('error')
 
 
-class SignalTrack(PA.Track):
+class SignalTrack(Track):
     """Class for getting V-plot signal"""
     def __init__(self, chrom, start, end):
-        PA.Track.__init__(self, chrom, start, end, "signal")
+        Track.__init__(self, chrom, start, end, "signal")
     def calculateSignal(self, mat, vmat):
         offset=self.start-mat.start-vmat.w
         if offset<0:
             raise Exception("Insufficient flanking region on \
                     mat to calculate signal")
-        self.vals = signal.correlate(mat.get(vmat.i_lower,vmat.i_upper,
+        self.vals = signal.correlate(mat.get(vmat.lower,vmat.upper,
                                               mat.start + offset, mat.end - offset),
                                        vmat.mat,mode = 'valid')[0]
 
-class NormSignalTrack(PA.Track):
+class NormSignalTrack(Track):
     """Class for storing normalized signal track"""
     def __init__(self, chrom, start, end):
-        PA.Track.__init__(self, chrom, start, end, "normalized signal")
+        Track.__init__(self, chrom, start, end, "normalized signal")
     def calculateNormSignal(self, raw, bias):
         self.vals = raw.get(self.start, self.end) - bias.get(self.start,self.end)
 
-class BiasTrack(PA.Track):
+class BiasTrack(Track):
     """Class for getting Bias Signal Track-- Background model"""
     def __init__(self, chrom, start, end):
-        PA.Track.__init__(self, chrom, start, end, "bias")
+        Track.__init__(self, chrom, start, end, "bias")
     def calculateBackgroundSignal(self, mat, vmat, nuc_cov):
         offset=self.start-mat.start-vmat.w
         if offset<0:
@@ -52,17 +53,15 @@ class BiasTrack(PA.Track):
                     mat to calculate signal")
         self.vmat = vmat
         self.bias_mat = mat
-        self.cov = PA.CoverageTrack(self.chrom, self.start, self.end)
-        self.cov.calculateCoverage(self.bias_mat, vmat.i_lower,
-                                   vmat.i_upper, vmat.w*2+1)
+        self.cov = CoverageTrack(self.chrom, self.start, self.end)
+        self.cov.calculateCoverage(self.bias_mat, vmat.lower,
+                                   vmat.upper, vmat.w*2+1)
         self.nuc_cov = nuc_cov.vals
-        self.vals = signal.correlate(self.bias_mat.get(vmat.i_lower,vmat.i_upper,
+        self.vals = signal.correlate(self.bias_mat.get(vmat.lower,vmat.upper,
                                                          self.bias_mat.start + offset,
                                                          self.bias_mat.end - offset),
                                        vmat.mat,mode = 'valid')[0]
         self.vals = self.vals * self.nuc_cov/ self.cov.vals
-
-
 
 
 
@@ -72,7 +71,7 @@ class SignalDistribution:
         self.position = position
         self.reads = reads
         self.vmat = vmat
-        bias_mat = bias_mat.get(vmat.i_lower,vmat.i_upper,position - vmat.w,position  + vmat.w + 1)
+        bias_mat = bias_mat.get(vmat.lower,vmat.upper,position - vmat.w,position  + vmat.w + 1)
         self.prob_mat = bias_mat / np.sum(bias_mat)
         self.probs = self.prob_mat.flatten()
     def simulateReads(self):
@@ -83,7 +82,7 @@ class SignalDistribution:
         self.scores = map(lambda x: np.sum(self.simulateReads() * self.vmat.mat),range(numiters))
     def analStd(self):
         flatv = np.ravel(self.vmat.mat)
-        var = multinomial_cov.makeCov(self.probs, flatv, self.reads)
+        var = calculateCov(self.probs, flatv, self.reads)
         return np.sqrt(var)
     def analMean(self):
         return np.sum(self.prob_mat * self.vmat.mat * self.reads)
@@ -108,9 +107,9 @@ class Nucleosome:
         self.norm_signal = nuctrack.norm_signal.get(pos = pos)
         self.smoothed = nuctrack.smoothed.get(pos= pos)
     def getLR(self,nuctrack):
-        mat = nuctrack.mat.get(nuctrack.params.lower,nuctrack.params.upper, 
+        mat = nuctrack.mat.get(nuctrack.params.lower,nuctrack.params.upper,
                                 self.pos - nuctrack.params.vmat.w, self.pos + nuctrack.params.vmat.w +1)
-        null_mat = nuctrack.bias_mat.get(nuctrack.params.lower,nuctrack.params.upper,      
+        null_mat = nuctrack.bias_mat.get(nuctrack.params.lower,nuctrack.params.upper,
                                 self.pos - nuctrack.params.vmat.w, self.pos + nuctrack.params.vmat.w +1)
         bias_mat =nuctrack.bias_mat_prenorm.get(nuctrack.params.lower,nuctrack.params.upper,
                                 self.pos - nuctrack.params.vmat.w, self.pos + nuctrack.params.vmat.w +1)
@@ -126,7 +125,10 @@ class Nucleosome:
         std = s.analStd()
         self.z = self.norm_signal / std
     def getOcc(self, nuctrack):
-        self.occ = nuctrack.occ.get(pos = self.pos)
+        if nuctrack.params.no_occ:
+            self.occ = np.nan
+        else:
+            self.occ = nuctrack.occ.get(pos = self.pos)
     def getFuzz(self, nuctrack):
         def addNorms(x,params):
             """Add several normal distributions together"""
@@ -185,7 +187,7 @@ class Nucleosome:
         self.fuzz= np.sqrt(res['x'][0])
         self.weight = res['x'][1]
         self.fit_pos = res['x'][2]+left
-    def writeNucPos(self, handle):
+    def write(self, handle):
         out = [self.chrom, self.pos, self.pos + 1, self.z, self.occ, self.lr,
                self.norm_signal, self.smoothed, self.nuc_signal, self.nuc_cov, self.nfr_cov,
                 self.fuzz]
@@ -201,79 +203,70 @@ class NFR:
         self.nfr = np.mean(nuctrack.nfr_cov.get(left,right))
         self.occ = np.mean(nuctrack.occ.get(left,right))
         self.max_occ = np.max(nuctrack.occ.get(left,right))
-    def writeNFRPos(self, handle):
+    def write(self, handle):
         out = [self.chrom, self.leftpos, self.rightpos, self.occ, self.nfr, self.nuc, self.max_occ]
         handle.write("\t".join(map(str, out)) + "\n")
 
 
 class NucParameters:
     """Class for storing parameters related to nucleosome calling"""
-    def __init__(self, vmat, insertsizes, sd = 25, nonredundant_sep = 120, redundant_sep = 25,
-                 min_z = 3, min_lr = 0, downsample = None, min_reads = 1,
-                 seed = 500, min_nfr_len = 1, max_nfr_len = 1000, max_nfr_occ = 0.2, min_nfr_ins = 0.05,
-                out = None, bias = None, gdna = None, write_all = False, occ_track = None, 
-                bam = None, occ_params = None):
+    def __init__(self, vmat, fragmentsizes, bam, fasta, pwm,
+                 occ_params = None, occ_track = None, no_occ = False,
+                 sd = 25, nonredundant_sep = 120, redundant_sep = 25,
+                 min_z = 3, min_lr = 0, min_reads = 1,
+                 min_nfr_len = 1, max_nfr_len = 1000, max_nfr_occ = 0.2, min_nfr_ins = 0.05):
         self.vmat = vmat
-        self.lower = vmat.i_lower
-        self.upper= vmat.i_upper
+        self.lower = vmat.lower
+        self.upper= vmat.upper
         self.window = vmat.mat.shape[1]
-        self.insertsizes= insertsizes
+        self.fragmentsizes= fragmentsizes
         self.min_reads = min_reads
         self.min_z = min_z
         self.min_lr = min_lr
         self.smooth_sd = sd
         self.redundant_sep = redundant_sep
         self.nonredundant_sep = nonredundant_sep
-        self.downsample = downsample
-        self.seed = seed
         self.min_nfr_len = min_nfr_len
         self.max_nfr_len = max_nfr_len
         self.max_nfr_occ = max_nfr_occ
         self.min_nfr_ins = min_nfr_ins
-        self.out = out
-        self.bias = bias
-        self.gdna = gdna
-        self.write_all = write_all
-        self.occ_track = occ_track
+        self.fasta = fasta
+        self.pwm = PWM.open(pwm)
+        self.chrs = read_chrom_sizes_from_fasta(fasta)
         self.bam = bam
         self.occ_params = occ_params
+        self.occ_track = occ_track
+        self.no_occ = no_occ
 
-class NucChunk(PA.ChromChunk):
+
+
+class NucChunk(Chunk):
     """Class for storing and determining collection of nucleosome positions
     """
-    def __init__(self, chrom, start, end):
-        PA.ChromChunk.__init__(self, chrom, start, end)
+    def __init__(self, chunk):
+        self.start = chunk.start
+        self.end = chunk.end
+        self.chrom = chunk.chrom
     def initialize(self, parameters):
         self.params = parameters
-    def extract_reads(self, bamfile):
-        self.reads = PA.ReadList(self.chrom, self.start - self.params.window,
-                                 self.end + self.params.window)
-        self.reads.extract_reads(bamfile,i_upper=self.params.upper, downsample = self.params.downsample,
-                                 seed = self.params.seed)
-    def getReadMat(self):
-        self.mat = PA.ReadMat2D(self.chrom, self.start - self.params.window,
+    def getFragmentMat(self):
+        self.mat = FragmentMat2D(self.chrom, self.start - max(self.params.window,self.params.upper/2+1),
+                                 self.end + max(self.params.window,self.params.upper/2+1), 0, self.params.upper)
+        self.mat.makeFragmentMat(self.params.bam)
+    def makeBiasMat(self):
+        self.bias_mat = BiasMat2D(self.chrom, self.start - self.params.window,
                                  self.end + self.params.window, 0, self.params.upper)
-        self.mat.makeReadMat(self.reads)
-    def makeBiasMat(self,  biasfile = None, gdna = False):
-        self.bias_mat = PA.BiasMat2D(self.chrom, self.start - self.params.window,
-                                 self.end + self.params.window, 0, self.params.upper)
-        if biasfile and gdna:
-            bias_track = PA.InsertionBiasTrack(self.chrom, self.start - self.params.window - self.params.upper/2,
-                                  self.end + self.params.window + self.params.upper/2 + 1, log = False)
-            bias_track.read_track(biasfile)
-            self.bias_mat.makeBiasMat(bias_track)
-        elif biasfile:
-            bias_track = PA.InsertionBiasTrack(self.chrom, self.start - self.params.window - self.params.upper/2,
+        bias_track = InsertionBiasTrack(self.chrom, self.start - self.params.window - self.params.upper/2,
                                   self.end + self.params.window + self.params.upper/2 + 1, log = True)
-            bias_track.read_track(biasfile)
-            self.bias_mat.makeBiasMat(bias_track)
-        self.bias_mat_prenorm = PA.BiasMat2D(self.chrom, self.start - self.params.window,
+        bias_track.computeBias(self.params.fasta, self.params.chrs, self.params.pwm)
+        self.bias_mat.makeBiasMat(bias_track)
+        self.bias_mat_prenorm = BiasMat2D(self.chrom, self.start - self.params.window,
                                  self.end + self.params.window, 0, self.params.upper)
         self.bias_mat_prenorm.mat = copy(self.bias_mat.mat)
-        self.bias_mat.normByInsertDist(self.params.insertsizes)
+        self.bias_mat.normByInsertDist(self.params.fragmentsizes)
     def getNucSignal(self):
         """Gets Nucleosome Signal Track"""
-        self.nuc_cov = PA.CoverageTrack(self.chrom, self.start,
+        self.nuc_cov = CoverageTrack(self.chrom, self.start,
                                      self.end)
         self.nuc_cov.calculateCoverage(self.mat, self.params.lower, self.params.upper,
                                         self.params.window)
@@ -287,40 +280,40 @@ class NucChunk(PA.ChromChunk):
         self.norm_signal.calculateNormSignal(self.nuc_signal,self.bias)
     def getNFR(self):
         """get number of reads of sub-nucleosomal length"""
-        self.nfr_cov = PA.CoverageTrack(self.chrom, self.start, self.end)
+        self.nfr_cov = CoverageTrack(self.chrom, self.start, self.end)
         self.nfr_cov.calculateCoverage(self.mat, 0, self.params.lower,
                                                         self.params.window)
     def smoothSignal(self):
         """Smooth thenormalized signal track"""
         window_len = 6 * self.params.smooth_sd + 1
-        self.smoothed = PA.Track(self.chrom,self.start,self.end, "Smooth Signal")
+        self.smoothed = Track(self.chrom,self.start,self.end, "Smooth Signal")
         tmp = copy(self.norm_signal.vals)
         self.smoothed.assign_track(tmp)
         self.smoothed.vals[ self.smoothed.vals < 0] = 0
         self.smoothed.smooth_track(window_len, window = "gaussian",
                              sd = self.params.smooth_sd, mode = 'same',
                              norm = True)
-    def getOcc(self, occ_bwh = None):
+    def getOcc(self):
         """gets occupancy track-- either reads in from bw handle given, or makes new"""
-        if occ_bwh is None and self.params.occ_params is None:
-            raise Exception("Error with getOcc functoin for NucChunk.  Need either bw handle or OccCalcParams")
-        elif occ_bwh is not None and self.params.occ_params is not None:
+        if self.params.occ_track is None and self.params.occ_params is None:
+            raise Exception("Error with getOcc functoin for NucChunk.  Need either tabix-indexed bedgraph file or OccCalcParams")
+        elif self.params.occ_track is not None and self.params.occ_params is not None:
             raise Warning("both occupancy track and parameters given-- will only use track")
-        if occ_bwh is not None:
-            self.occ = PA.Track(self.chrom,self.start,self.end,"Occupancy")
-            self.occ.read_track(occ_bwh)
+        if self.params.occ_track is not None:
+            self.occ = Track(self.chrom,self.start,self.end,"Occupancy")
+            self.occ.read_track(self.params.occ_track)
         else:
-            self.occ = Occ.OccupancyTrack(self.chrom, self.start, self.end)
+            self.occ = OccupancyTrack(self.chrom, self.start, self.end)
             self.occ.calculateOccupancyMLE_smooth(self.mat, self.params.occ_params)
     def findAllNucs(self):
         """Find peaks in data"""
         self.nuc_collection = {}
         combined = self.norm_signal.vals + self.smoothed.vals
         #find peaks in normalized sigal
-        cands1 = PA.call_peaks(combined, min_signal = 0,
-                                sep = self.params.redundant_sep, 
+        cands1 = call_peaks(combined, min_signal = 0,
+                                sep = self.params.redundant_sep,
                                 boundary = self.params.nonredundant_sep/2, order = self.params.redundant_sep/2)
-        for i in cands1:        
+        for i in cands1:
             nuc = Nucleosome(i + self.start, self)
             if nuc.nuc_cov > self.params.min_reads:
                 nuc.getLR(self)
@@ -330,17 +323,17 @@ class NucChunk(PA.ChromChunk):
                         nuc.getOcc(self)
                         self.nuc_collection[i] = nuc
         self.sorted_nuc_keys = np.array(sorted(self.nuc_collection.keys()))
-        self.nonredundant = PA.reduce_peaks( self.sorted_nuc_keys, 
+        self.nonredundant = reduce_peaks( self.sorted_nuc_keys,
                                             map(lambda x: self.nuc_collection[x].z, self.sorted_nuc_keys),
                                                 self.params.nonredundant_sep)
         self.redundant = np.setdiff1d(self.sorted_nuc_keys, self.nonredundant)
     def fit(self):
-        x = np.linspace(0,self.length -1,self.length)
-        fit = np.zeros(self.length)
+        x = np.linspace(0,self.length() -1, self.length())
+        fit = np.zeros(self.length())
         for nuc in self.sorted_nuc_keys:
             self.nuc_collection[nuc].getFuzz(self)
             fit += norm(x,self.nuc_collection[nuc].fuzz**2, self.nuc_collection[nuc].weight, self.nuc_collection[nuc].fit_pos)
-        self.fitted = PA.Track(self.chrom, self.start, self.end,
+        self.fitted = Track(self.chrom, self.start, self.end,
                             "Fitted Nucleosome Signal")
         self.fitted.assign_track(fit)
     def findNFRs(self):
@@ -357,140 +350,25 @@ class NucChunk(PA.ChromChunk):
                 self.nfrs[leftnucbound] = NFR(leftnucbound + self.start, rightnucbound + self.start + 1,self)
     def makeInsertionTrack(self):
         """make insertion track for chunk"""
-        self.ins = PA.InsertionTrack(self.chrom, self.start,self.end)
-        self.ins.calculateInsertions(self.reads)
-    def process(self, params, bamfile, occfile, biasfile = None, gdna = False):
+        self.ins = self.mat.getIns()
+    def process(self, params):
         """wrapper to carry out all methods needed to call nucleosomes and nfrs"""
         self.initialize(params)
-        self.extract_reads(bamfile)
-        self.getReadMat()
-        if biasfile is not None:
-            self.makeBiasMat(biasfile)
-        elif gdna:
-            self.makeBiasMat(biasfile, gdna = True)
-        else:
-            self.makeBiasMat()
+        self.getFragmentMat()
+        self.makeBiasMat()
         self.getNucSignal()
         self.getNFR()
         self.smoothSignal()
-        self.getOcc(occ_bwh = occfile)
+        if not params.no_occ:
+            self.getOcc()
         self.findAllNucs()
         self.fit()
         self.makeInsertionTrack()
-        self.findNFRs()
+        if not params.no_occ:
+            self.findNFRs()
     def removeData(self):
         """remove data from chunk-- deletes all attributes"""
         names = self.__dict__.keys()
         for name in names:
             delattr(self,name)
 
-class NucChunkSet(PA.ChunkSet):
-    """Class for storing sets of NucChunks
-    """
-    def __init__(self, name, chunks):
-        PA.ChunkSet.__init__(self, name, chunks)
-    def process(self, params):
-        """process chunkset-- for all chunks, perform all methods needed to 
-        obtain and write nucleosome signal and positions
-        """
-        if params.bias is not None and params.gdna is not None:
-            raise Exception("NucChunkSet.process shoud only have either a bias or gdna input, not both")
-        bamfile = pysam.Samfile(params.bam, "rb")
-        if params.occ_track:
-            occfile = bx.bbi.bigwig_file.BigWigFile(open(params.occ_track,'rb'))
-        else:
-            occfile = None
-        if params.bias is not None:
-            biasfile = bx.bbi.bigwig_file.BigWigFile(open(params.bias,'rb'))
-        elif params.gdna is not None:
-            biasfile = bx.bbi.bigwig_file.BigWigFile(open(params.bias,'rb'))
-        else:
-            biasfile = None
-        handles = {}
-        if params.write_all:
-            outputs = ['nucpos','nucpos.redundant','nfrpos','nucsig','smoothsig','ins','nuc_cov',
-                       'nfr_cov','background','rawsig','fitted']
-        else:
-            outputs = ['nucpos','nucpos.redundant','nfrpos','nucsig','smoothsig','ins']
-        if params.occ_track is None:
-            outputs.append('occ')
-        for i in outputs:
-            handles[i] = open('tmp_nucleoatac/' + self.name + '.' + params.out + '.' +
-                            i + '.tmp.bed','w')
-        for chunk in self.chunks:
-            if params.bias:
-                chunk.process(params, bamfile, occfile, biasfile, gdna = False)
-            elif params.gdna:
-                chunk.process(params, bamfile, occfile, biasfile, gdna = True)
-            else:
-                chunk.process(params, bamfile, occfile)
-            for key in chunk.nonredundant:
-                chunk.nuc_collection[key].writeNucPos(handles['nucpos'])
-            for key in chunk.redundant:
-                chunk.nuc_collection[key].writeNucPos(handles['nucpos.redundant'])
-            for key in chunk.nfrs.keys():
-                chunk.nfrs[key].writeNFRPos(handles['nfrpos'])
-            chunk.ins.write_track(handles['ins'])
-            chunk.norm_signal.write_track(handles['nucsig'])
-            chunk.smoothed.write_track(handles['smoothsig'])
-            if params.write_all:
-                chunk.nuc_signal.write_track(handles['rawsig'])
-                chunk.nuc_cov.vals = chunk.nuc_cov.vals / params.window * 10.0
-                chunk.nuc_cov.write_track(handles['nuc_cov'])
-                chunk.bias.write_track(handles['background'])
-                chunk.nfr_cov.vals = chunk.nfr_cov.vals / params.window * 10.0
-                chunk.nfr_cov.write_track(handles['nfr_cov'])
-                chunk.fitted.write_track(handles['fitted'])
-            if params.occ_track is None:
-                chunk.occ.write_track(handles['occ'])
-            chunk.removeData()
-        for key in handles.keys():
-            handles[key].close()
-        bamfile.close()
-
-def read_bed(bedfile, genome_dict, max_offset = 0):
-        """Make a dictionary of Chromosome insances from a bedfile"""
-        infile = open(bedfile,"r")
-        out = []
-        while 1:
-            in_line = infile.readline().rstrip('\n').split("\t")
-            if not in_line[0]:
-                break
-            chrom = in_line[0]
-            start = int(in_line[1])
-            if start < max_offset:
-                start = max_offset
-            end = int(in_line[2])
-            if end > (genome_dict[chrom] - max_offset):
-                end = genome_dict[chrom] - max_offset
-            out.extend([NucChunk(chrom, start, end)])
-        infile.close()
-        return out
-
-
-def makeChunkSetList(bed_list, number):
-    """turn list of ChromChunks into a list of ChunkSet (sets of ChromChunks)"""
-    l = len(bed_list)
-    bases = 0.0
-    for i in range(l):
-        bases += bed_list[i].end - bed_list[i].start
-    if number >= l:
-        sets = []
-        z = int(np.log10(l)+1)
-        for j in range(l):
-            sets.append(NucChunkSet(str(j).zfill(z),bed_list[j:(j+1)]))
-    else:
-        x = min(number*3,l)
-        n = bases/x
-        sets = []
-        z = int(np.log10(x)+1)
-        included = 0
-        i = 0
-        for j in range(x):
-            a = i
-            while included < (j+1)*n and i < l:
-                included += bed_list[i].end - bed_list[i].start
-                i += 1
-            b = i
-            sets.append(NucChunkSet(str(j).zfill(z),bed_list[a:b]))
-    return sets

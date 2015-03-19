@@ -1,3 +1,3 @@
-#Any constants desired for program
+from pkg_resources import resource_filename
 
-NUCLEOATAC_VERSION = "0"#version
+default_vplot = resource_filename('nucleoatac.vplot','standard_vplot.VMat')
