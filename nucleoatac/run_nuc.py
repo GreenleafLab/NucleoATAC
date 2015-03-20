@@ -29,13 +29,13 @@ def _nucHelper(arg):
         nuc.process(params)
         if params.no_occ:
             out = {'nucpos' : [nuc.nuc_collection[i] for i in sorted(nuc.nonredundant)], 'nucpos.redundant' : [nuc.nuc_collection[i] for i in sorted(nuc.redundant)],
-                               'nucsig' : nuc.norm_signal, 'raw' : nuc.nuc_signal, 'background' : nuc.bias,
-                               'smoothsig' : nuc.smoothed}
+                               'nucleoatac_signal' : nuc.norm_signal, 'nucleoatac_raw' : nuc.nuc_signal, 'nucleoatac_background' : nuc.bias,
+                               'nucleoatac_signal.smooth' : nuc.smoothed}
         else:
             out = {'nucpos' : [nuc.nuc_collection[i] for i in sorted(nuc.nonredundant)], 'nucpos.redundant' : [nuc.nuc_collection[i] for i in sorted(nuc.redundant)],
                                'nfrpos' : [nuc.nfrs[i] for i in sorted(nuc.nfrs.keys())],
-                               'nucsig' : nuc.norm_signal, 'occ' : nuc.occ, 'raw' : nuc.nuc_signal, 'background' : nuc.bias,
-                               'smoothsig' : nuc.smoothed}
+                               'nucleoatac_signal' : nuc.norm_signal, 'occ' : nuc.occ, 'nucleoatac_raw' : nuc.nuc_signal, 'nucleoatac_background' : nuc.bias,
+                               'nucleoatac_signal.smooth' : nuc.smoothed}
         nuc.removeData()
     except Exception as e:
         print('Caught exception when processing:\n'+  chunk.asBed()+"\n")
@@ -169,8 +169,8 @@ def _writeNFRPos(pos_queue, out):
     return True
 
 _writeFuncs = {'nucpos' : _writeNucPos, 'nucpos.redundant' : _writeNucPosRedundant, 'nfrpos' : _writeNFRPos,
-               'nucsig' : _writeNucSig, 'occ' : _writeOcc, 'raw' : _writeRaw, 'background' : _writeBackground,
-               'smoothsig' : _writeSmooth}
+               'nucleoatac_signal' : _writeNucSig, 'occ' : _writeOcc, 'nucleoatac_raw' : _writeRaw, 'nucleoatac_background' : _writeBackground,
+               'nucleoatac_signal.smooth' : _writeSmooth}
 
 
 def run_nuc(args, bases = 5000000):
@@ -204,10 +204,10 @@ def run_nuc(args, bases = 5000000):
     sets = chunks.split( bases = bases)
     pool1 = mp.Pool(processes = max(1,args.cores-1))
     if args.write_all:
-        outputs = ['nucpos','nucpos.redundant','nucsig','smoothsig',
-                       'background','rawsig','fitted']
+        outputs = ['nucpos','nucpos.redundant','nucleoatac_signal','nucleoatac_signal.smooth',
+                       'nucleoatac_background','nucleoatac_raw']
     else:
-        outputs = ['nucpos','nucpos.redundant','nucsig','smoothsig']
+        outputs = ['nucpos','nucpos.redundant','nucleoatac_signal','nucleoatac_signal.smooth']
     if not params.no_occ:
         outputs.append('nfrpos')
     if params.occ_track is None and not params.no_occ:
