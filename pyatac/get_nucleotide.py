@@ -69,7 +69,7 @@ def get_nucleotide(args):
     tmp = pool.map(_nucleotideHelper, zip(sets,itertools.repeat(params)))
     pool.close()
     pool.join()
-    result = params.matsize
+    result = np.zeros(params.matsize)
     n = 0.0
     for i in tmp:
         result += i[0]
