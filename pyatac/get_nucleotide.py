@@ -24,10 +24,10 @@ def _nucleotideHelper(arg):
     try:
         for chunk in chunks:
             chunk.center()
-            chunk.slop(chromDict = params.chrs, up = params.up, down = params.down + self.dinucleotide)
+            chunk.slop(chromDict = params.chrs, up = params.up, down = params.down + params.dinucleotide)
             sequence = seq.get_sequence(chunk, params.fasta)
             submat = seq.seq_to_mat(sequence, params.nucleotides)
-            if len(sequence) == (params.up + params.down + 1 + self.dinucleotide):
+            if len(sequence) == (params.up + params.down + 1 + params.dinucleotide):
                 mat += submat
                 n += 1
     except Exception as e:
