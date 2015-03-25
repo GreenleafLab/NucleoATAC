@@ -19,15 +19,15 @@ import pyatac.utils as utils
 def _nucleotideHelper(arg):
     """Helper function for multiprocessing acquisition of sequence content around sites"""
     (chunks, params) = arg
-    mat = np.zeros((len(params.nucleotides), params.up + params.down+ 1))
+    mat = np.zeros(params.matsize)
     n = 0.0
     try:
         for chunk in chunks:
             chunk.center()
-            chunk.slop(chromDict = params.chrs, up = params.up, down = params.down)
+            chunk.slop(chromDict = params.chrs, up = params.up, down = params.down + self.dinucleotide)
             sequence = seq.get_sequence(chunk, params.fasta)
             submat = seq.seq_to_mat(sequence, params.nucleotides)
-            if len(sequence) == (params.up + params.down + 1):
+            if len(sequence) == (params.up + params.down + 1 + self.dinucleotide):
                 mat += submat
                 n += 1
     except Exception as e:
@@ -40,7 +40,7 @@ def _nucleotideHelper(arg):
 
 class _NucleotideParameters:
     """Class to store parameters related to getting nucleotides"""
-    def __init__(self, up, down, fasta,dinucleotide = False):
+    def __init__(self, up, down, fasta, dinucleotide = False):
         self.up = up
         self.down = down
         self.fasta = fasta
@@ -53,6 +53,8 @@ class _NucleotideParameters:
             self.nucleotides = dinucs
         else:
             self.nucleotides = ["A","C","G","T"]
+        self.matsize = (len(self.nucleotides), self.up + self.down + 1)
+        self.dinucleotide = dinucleotide
 
 ##### Main function #####
 
@@ -67,7 +69,7 @@ def get_nucleotide(args):
     tmp = pool.map(_nucleotideHelper, zip(sets,itertools.repeat(params)))
     pool.close()
     pool.join()
-    result = np.zeros((len(params.nucleotides), params.up + params.down+ 1))
+    result = params.matsize
     n = 0.0
     for i in tmp:
         result += i[0]
