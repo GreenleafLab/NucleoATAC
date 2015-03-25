@@ -72,10 +72,11 @@ def get_ins(args, bases = 50000, splitsize = 1000):
         chunks = ChunkList.read(args.bed)
         chunks.merge()
         sets = chunks.split(bases = bases)
+    maxQueueSize = max(2,int(2 * bases / np.mean([chunk.length() for chunk in chunks])))
     pool1 = mp.Pool(processes = max(1,args.cores-1))
     out_handle = open(args.out + '.ins.bedgraph','w')
     out_handle.close()
-    write_queue = mp.JoinableQueue()
+    write_queue = mp.JoinableQueue(maxsize = maxQueueSize)
     write_process = mp.Process(target = _writeIns, args=(write_queue, args.out))
     write_process.start()
     for j in sets:

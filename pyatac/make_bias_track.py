@@ -50,7 +50,7 @@ class _BiasParams:
         self.fasta = fasta
         self.pwm = PWM.open(pwm)
 
-def make_bias_track(args, bases = 50000, splitsize = 1000):
+def make_bias_track(args, bases = 500000, splitsize = 1000):
     """function to compute bias track
 
     """
@@ -64,10 +64,11 @@ def make_bias_track(args, bases = 50000, splitsize = 1000):
         chunks = ChunkList.read(args.bed)
         chunks.merge()
         sets = chunks.split(bases = bases)
+    maxQueueSize = max(2,int(2 * bases / np.mean([chunk.length() for chunk in chunks])))
     pool = mp.Pool(processes = min(1,args.cores-1))
     out_handle = open(args.out + '.Scores.bedgraph','w')
     out_handle.close()
-    write_queue = mp.JoinableQueue()
+    write_queue = mp.JoinableQueue(maxsize = maxQueueSize)
     write_process = mp.Process(target = _writeBias, args=(write_queue, args.out))
     write_process.start()
     for j in sets:
@@ -79,8 +80,6 @@ def make_bias_track(args, bases = 50000, splitsize = 1000):
     write_queue.put('STOP')
     write_process.join()
     pysam.tabix_compress(args.out + '.Scores.bedgraph', args.out + '.Scores.bedgraph.gz', force = True)
-    #shell_command('zcat ' + args.out + '.Scores.bedgraph.gz  | bgzip -c > ' + args.out + '.Scores.bedgraph.bgz')
-    #shell_command('tabix -b 2 -e 3 ' + args.out + '.Scores.bedgraph.bgz')
     shell_command('rm ' + args.out + '.Scores.bedgraph')
     pysam.tabix_index(args.out + '.Scores.bedgraph.gz', preset = "bed", force = True)
 

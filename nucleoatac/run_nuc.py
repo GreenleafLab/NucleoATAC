@@ -8,6 +8,7 @@ Script to call nucleosome positions-- track making, nucleosome calling, and nfr 
 import matplotlib as mpl
 mpl.use('PS')
 import multiprocessing as mp
+import numpy as np
 import traceback
 import itertools
 import pysam
@@ -173,7 +174,7 @@ _writeFuncs = {'nucpos' : _writeNucPos, 'nucpos.redundant' : _writeNucPosRedunda
                'nucleoatac_signal.smooth' : _writeSmooth}
 
 
-def run_nuc(args, bases = 5000000):
+def run_nuc(args, bases = 500000):
     """run occupancy calling
 
     """
@@ -182,6 +183,7 @@ def run_nuc(args, bases = 5000000):
     pwm = PWM.open(args.pwm)
     chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = vmat.mat.shape[1] + vmat.upper/2 + max(pwm.up,pwm.down), min_length = args.nuc_sep * 2)
     chunks.merge()
+    maxQueueSize = max(2,int(2 * bases / np.mean([chunk.length() for chunk in chunks])))
     fragment_dist = FragmentMixDistribution(0, upper = vmat.upper)
     if args.sizes is not None:
         tmp = FragmentSizes.open(args.sizes)
@@ -221,7 +223,7 @@ def run_nuc(args, bases = 5000000):
         else:
             handles[i] = open(args.out + '.'+i+'.bed','w')
         handles[i].close()
-        write_queues[i] = mp.JoinableQueue()
+        write_queues[i] = mp.JoinableQueue(maxsize = maxQueueSize)
         write_processes[i] = mp.Process(target = _writeFuncs[i], args=(write_queues[i], args.out))
         write_processes[i].start()
     for j in sets:
