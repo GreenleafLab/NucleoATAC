@@ -9,6 +9,7 @@ Script to make insertion track
 import os
 import multiprocessing as mp
 import itertools
+import numpy as np
 import pysam
 import traceback
 import pyximport; pyximport.install()
@@ -63,7 +64,10 @@ def get_ins(args, bases = 50000, splitsize = 1000):
 
     """
     if not args.out:
-        args.out = '.'.join(os.path.basename(args.bam).split('.')[0:-1])
+        if args.bed is None:
+            args.out = '.'.join(os.path.basename(args.bam).split('.')[0:-1])
+        else:
+            args.out = '.'.join(os.path.basename(args.bed).split('.')[0:-1])
     if args.bed is None:
         chrs = read_chrom_sizes_from_bam(args.bam)
         chunks = ChunkList.convertChromSizes(chrs, splitsize = splitsize)
