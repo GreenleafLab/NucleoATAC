@@ -11,6 +11,7 @@ import multiprocessing as mp
 import itertools
 import traceback
 import pysam
+import numpy as np
 from pyatac.chunk import ChunkList
 from pyatac.bias import InsertionBiasTrack, PWM
 from pyatac.utils import read_chrom_sizes_from_fasta, shell_command
@@ -55,7 +56,10 @@ def make_bias_track(args, bases = 500000, splitsize = 1000):
 
     """
     if args.out is None:
-        args.out = '.'.join(os.path.basename(args.bed).split('.')[0:-1])
+        if args.bed is not None:
+            args.out = '.'.join(os.path.basename(args.bed).split('.')[0:-1])
+        else:
+            args.out = '.'.join(os.path.basename(args.fasta).split('.')[0:-1])
     params = _BiasParams(args.fasta, args.pwm)
     if args.bed is None:
         chunks = ChunkList.convertChromSizes(params.chrs, splitsize = splitsize)
@@ -65,7 +69,7 @@ def make_bias_track(args, bases = 500000, splitsize = 1000):
         chunks.merge()
         sets = chunks.split(bases = bases)
     maxQueueSize = max(2,int(2 * bases / np.mean([chunk.length() for chunk in chunks])))
-    pool = mp.Pool(processes = min(1,args.cores-1))
+    pool = mp.Pool(processes = max(1,args.cores-1))
     out_handle = open(args.out + '.Scores.bedgraph','w')
     out_handle.close()
     write_queue = mp.JoinableQueue(maxsize = maxQueueSize)
