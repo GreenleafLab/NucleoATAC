@@ -5,15 +5,17 @@ Classes for computing nucleosome occupancy
 """
 
 
-from scipy import signal, optimize
+from scipy import signal, optimize, stats
 import numpy as np
 import matplotlib.pyplot as plt
 import pyximport; pyximport.install()
 from pyatac.fragmentsizes import FragmentSizes
 from pyatac.tracks import Track, CoverageTrack
 from pyatac.chunk import Chunk
-from pyatac.utils import call_peaks
-from pyatac.chunkmat2d import FragmentMat2D
+from pyatac.utils import call_peaks, read_chrom_sizes_from_fasta
+from pyatac.chunkmat2d import FragmentMat2D, BiasMat2D
+from pyatac.bias import InsertionBiasTrack, PWM
+
 
 class FragmentMixDistribution:
     """Class for modelling insert size distribution"""
@@ -67,28 +69,36 @@ class FragmentMixDistribution:
 
 class OccupancyCalcParams:
     """Class with parameters for occupancy determination"""
-    def __init__(self, lower, upper , insert_dist):
+    def __init__(self, lower, upper , insert_dist, ci = 0.95):
         self.lower = lower
         self.upper = upper
-        self.smooth_mat = np.tile(signal.gaussian(151,25),(upper-lower,1))
+        #self.smooth_mat = np.tile(signal.gaussian(151,25),(upper-lower,1))
         nuc_probs = insert_dist.nuc_fit.get(lower,upper)
         self.nuc_probs = nuc_probs /np.sum(nuc_probs)
         nfr_probs = insert_dist.nfr_fit.get(lower,upper)
         self.nfr_probs = nfr_probs /np.sum(nfr_probs)
         self.alphas = np.linspace(0, 1, 101)
-        self.x = map(lambda alpha: np.log(alpha * self.nuc_probs + (1 - alpha) * self.nfr_probs), self.alphas)
-        self.w = 75
-        self.l = len(self.x)
+        #self.x = map(lambda alpha: np.log(alpha * self.nuc_probs + (1 - alpha) * self.nfr_probs), self.alphas)
+        self.l = len(self.alphas)
+        self.cutoff = stats.chi2.ppf(ci,1)
 
-
-def calculateOccupancy(inserts, params):
+def calculateOccupancy(inserts, bias, params):
     """function to calculate occupancy based on insert distribution
     also takes OccupancyCalcParams as input
     """
-    logliks = np.array(map(lambda j: np.sum(params.x[j]*inserts),range(params.l)))
+    nuc_probs = params.nuc_probs * bias
+    nuc_probs = nuc_probs / np.sum(nuc_probs)
+    nfr_probs = params.nfr_probs * bias
+    nfr_probs = nfr_probs / np.sum(nfr_probs)
+    x = map(lambda alpha: np.log(alpha * nuc_probs + (1 - alpha) * nfr_probs), params.alphas)
+    logliks = np.array(map(lambda j: np.sum(x[j]*inserts),range(params.l)))
     logliks[np.isnan(logliks)] = -float('inf')
     occ = params.alphas[np.argmax(logliks)]
-    return occ
+    #Compute upper and lower bounds for 95% confidence interval
+    ratios = 2*(max(logliks)-logliks)
+    lower = params.alphas[min(np.where(ratios < params.cutoff)[0])]
+    upper = params.alphas[max(np.where(ratios < params.cutoff)[0])]
+    return occ, lower, upper
 
 
 
@@ -96,18 +106,23 @@ class OccupancyTrack(Track):
     """Class for computing nucleosome occupancy"""
     def __init__(self, chrom, start, end):
         Track.__init__(self, chrom, start, end, "occupancy")
-    def calculateOccupancyMLE_smooth(self, mat, params):
+    def calculateOccupancyMLE(self, mat, bias_mat, params):
         """Calculate Occupancy track"""
         offset=self.start - mat.start
-        if offset<params.w:
-            raise Exception("For calculateOccupancyMLE_smooth, mat does not have sufficient flanking regions"),offset
+        if offset<params.flank:
+            raise Exception("For calculateOccupancyMLE, mat does not have sufficient flanking regions"),offset
         self.vals=np.ones(self.end - self.start)*float('nan')
+        self.lower_bound = np.ones(self.end - self.start)*float('nan')
+        self.upper_bound =np.ones(self.end - self.start)*float('nan')
         for i in range(len(self.vals)):
-            new_inserts = np.sum(mat.get(lower = params.lower,upper = params.upper,
-                                         start = self.start+i-params.w, end = self.start+i+params.w+1)*params.smooth_mat,
+            new_inserts = np.sum(mat.get(lower = 0, upper = params.upper,
+                                         start = self.start+i-params.flank, end = self.start+i+params.flank+1),
+                                         axis = 1)
+            new_bias = np.sum(bias_mat.get(lower = 0, upper = params.upper,
+                                         start = self.start+i-params.flank, end = self.start+i+params.flank+1),
                                          axis = 1)
             if sum(new_inserts)>0:
-                self.vals[i] = calculateOccupancy(new_inserts,params)
+                self.vals[i],self.lower_bound[i],self.upper_bound[i] = calculateOccupancy(new_inserts, new_bias, params.occ_calc_params)
 
 class OccPeak:
     def __init__(self, pos, chunk):
@@ -123,15 +138,20 @@ class OccPeak:
 
 class OccupancyParameters:
     """Class for storing parmeers related to Occupancy determination"""
-    def __init__(self, bed_list, insert_dist, upper, sep = 120, min_occ = 0.25, min_reads = 1, flank = 60,
+    def __init__(self, insert_dist, upper, fasta, pwm, sep = 120, min_occ = 0.25, min_reads = 1, flank = 30,
                 write_peaks = True, out = None, bam = None):
         self.sep = sep
+        self.chrs = read_chrom_sizes_from_fasta(fasta)
+        self.fasta = fasta
+        self.pwm = PWM.open(pwm)
+        self.window = flank * 2 + 1
         self.min_occ = min_occ
         self.min_reads = min_reads
         self.flank = flank
         self.write_peaks = write_peaks
         self.out = out
         self.bam = bam
+        self.upper = upper
         self.occ_calc_params = OccupancyCalcParams(0, upper, insert_dist)
 
 class OccChunk(Chunk):
@@ -142,37 +162,49 @@ class OccChunk(Chunk):
         self.end = chunk.end
         self.chrom = chunk.chrom
         self.peaks = {}
-    def calculateOcc(self, bamfile, params):
+    def getFragmentMat(self):
+        self.mat = FragmentMat2D(self.chrom, self.start - self.params.flank,
+                                 self.end + self.params.flank, 0, self.params.upper)
+        self.mat.makeFragmentMat(self.params.bam)
+    def makeBiasMat(self):
+        self.bias_mat = BiasMat2D(self.chrom, self.start - self.params.flank,
+                                 self.end + self.params.flank, 0, self.params.upper)
+        bias_track = InsertionBiasTrack(self.chrom, self.start - self.params.window - self.params.upper/2,
+                                  self.end + self.params.window + self.params.upper/2 + 1, log = True)
+        bias_track.computeBias(self.params.fasta, self.params.chrs, self.params.pwm)
+        self.bias_mat.makeBiasMat(bias_track)
+    def calculateOcc(self):
         """calculate occupancy for chunk"""
-        self.mat = FragmentMat2D(self.chrom, self.start - 75, self.end + 75 , 0, params.upper)
-        self.mat.makeFragmentMat(bamfile)
         self.occ = OccupancyTrack(self.chrom,self.start,self.end)
-        self.occ.calculateOccupancyMLE_smooth(self.mat, params)
-    def getCov(self, upper):
-        """Get read coveraged (smoothed in same way as occupancy) for regions"""
+        self.occ.calculateOccupancyMLE(self.mat, self.bias_mat, self.params)
+    def getCov(self):
+        """Get read coverage for regions"""
         self.cov = CoverageTrack(self.chrom, self.start, self.end)
-        self.cov.calculateCoverageSmooth(self.mat, 0, upper, 151, sd = 25)
-    def callPeaks(self, sep, min_occ, min_reads):
+        self.cov.calculateCoverage(self.mat, 0, self.params.upper, self.params.window)
+    def callPeaks(self):
         """Call peaks of occupancy profile"""
-        peaks = call_peaks(self.occ.vals, sep = sep, min_signal = min_occ)
+        peaks = call_peaks(self.occ.vals, sep = self.params.sep, min_signal = self.params.min_occ)
         for peak in peaks:
             tmp = OccPeak(peak + self.start, self)
-            if tmp.reads > min_reads:
+            if tmp.reads > self.params.min_reads:
                 self.peaks[peak] = tmp
-    def getNucDist(self, flank, upper):
+    def getNucDist(self):
         """Get nucleosomal insert distribution"""
-        nuc_dist = np.zeros(upper)
+        nuc_dist = np.zeros(self.params.upper)
         for peak in self.peaks.keys():
-            sub = self.mat.get(start = self.peaks[peak].pos-flank,end = self.peaks[peak].pos+1+flank)
+            sub = self.mat.get(start = self.peaks[peak].pos-self.params.flank, end = self.peaks[peak].pos+1+self.params.flank)
             sub_sum = np.sum(sub,axis=1)
             sub_sum = sub_sum / float(sum(sub_sum))
             nuc_dist += sub_sum
         return(nuc_dist)
     def process(self, params):
         """proces chunk -- calculat occupancy, get coverage, call peaks"""
-        self.calculateOcc(params.bam, params.occ_calc_params)
-        self.getCov(params.occ_calc_params.upper)
-        self.callPeaks(params.sep, params.min_occ, params.min_reads)
+        self.params = params
+        self.getFragmentMat()
+        self.makeBiasMat()        
+        self.calculateOcc()
+        self.getCov()
+        self.callPeaks()
     def removeData(self):
         """remove data from chunk-- deletes all attributes"""
         names = self.__dict__.keys()

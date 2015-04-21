@@ -18,6 +18,7 @@ from pyatac.utils import shell_command,read_chrom_sizes_from_bam
 from pyatac.chunk import ChunkList
 from nucleoatac.Occupancy import FragmentMixDistribution, OccupancyParameters, OccChunk
 from pyatac.fragmentsizes import FragmentSizes
+from pyatac.bias import PWM
 
 def _occHelper(arg):
     """function to get occupancy for a set of bed regions
@@ -28,11 +29,10 @@ def _occHelper(arg):
         occ = OccChunk(chunk)
         occ.process(params)
         if params.write_peaks:
-            out = (occ.getNucDist(params.flank, params.occ_calc_params.upper),
+            out = (occ.getNucDist(),
                 occ.occ, [occ.peaks[i] for i in sorted(occ.peaks.keys())])
         else:
-            out = (occ.getNucDist(params.flank, params.occ_calc_params.upper),
-                occ.occ)
+            out = (occ.getNucDist(),occ.occ)
         occ.removeData()
     except Exception as e:
         print('Caught exception when processing:\n'+  chunk.asBed()+"\n")
@@ -42,17 +42,23 @@ def _occHelper(arg):
     return out
 
 def _writeOcc(track_queue, out):
-    out_handle = open(out + '.occ.bedgraph','a')
+    out_handle1 = open(out + '.occ.bedgraph','a')
+    out_handle2 = open(out + '.occ.lower_bound.bedgraph','a')
+    out_handle3 = open(out + '.occ.upper_bound.bedgraph','a')
     try:
         for track in iter(track_queue.get, 'STOP'):
-            track.write_track(out_handle)
+            track.write_track(out_handle1)
+            track.write_track(out_handle2, vals = track.lower_bound)
+            track.write_track(out_handle3, vals = track.upper_bound)
             track_queue.task_done()
     except Exception, e:
         print('Caught exception when writing occupancy track\n')
         traceback.print_exc()
         print()
         raise e
-    out_handle.close()
+    out_handle1.close()
+    out_handle2.close()
+    out_handle3.close()
     return True
 
 
@@ -78,7 +84,8 @@ def run_occ(args, bases = 500000):
 
     """
     chrs = read_chrom_sizes_from_bam(args.bam)
-    chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = 75)
+    pwm = PWM.open(args.pwm)
+    chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = args.flank + args.upper/2 + max(pwm.up,pwm.down))
     chunks.merge()
     maxQueueSize = max(2,int(2 * bases / np.mean([chunk.length() for chunk in chunks])))
     fragment_dist = FragmentMixDistribution(0, upper = args.upper)
@@ -90,12 +97,16 @@ def run_occ(args, bases = 500000):
     fragment_dist.modelNFR()
     fragment_dist.plotFits(args.out + '.occ_fit.eps')
     fragment_dist.fragmentsizes.save(args.out + '.fragmentsizes.txt')
-    params = OccupancyParameters(chunks, fragment_dist, args.upper, sep = args.nuc_sep, min_occ = args.min_occ, min_reads = args.reads,
+    params = OccupancyParameters(fragment_dist, args.upper, args.fasta, args.pwm, sep = args.nuc_sep, min_occ = args.min_occ, min_reads = args.reads,
             flank = args.flank,write_peaks = args.write_peaks, out = args.out, bam = args.bam)
     sets = chunks.split(bases = bases)
     pool1 = mp.Pool(processes = max(1,args.cores-1))
-    out_handle = open(args.out + '.occ.bedgraph','w')
-    out_handle.close()
+    out_handle1 = open(args.out + '.occ.bedgraph','w')
+    out_handle1.close()
+    out_handle2 = open(args.out + '.occ.lower_bound.bedgraph','w')
+    out_handle2.close()
+    out_handle3 = open(args.out + '.occ.upper_bound.bedgraph','w')
+    out_handle3.close()
     write_queue = mp.JoinableQueue(maxsize = maxQueueSize)
     write_process = mp.Process(target = _writeOcc, args=(write_queue, args.out))
     write_process.start()
@@ -120,10 +131,10 @@ def run_occ(args, bases = 500000):
     if args.write_peaks:
         peaks_queue.put('STOP')
         peaks_process.join()
-    pysam.tabix_compress(args.out + '.occ.bedgraph', args.out + '.occ.bedgraph.gz',force = True)
-    shell_command('rm ' + args.out + '.occ.bedgraph')
-    pysam.tabix_index(args.out + '.occ.bedgraph.gz', preset = "bed", force = True)
-
+    for i in ('occ','occ.lower_bound','occ.upper_bound'):
+        pysam.tabix_compress(args.out + '.' + i + '.bedgraph', args.out + '.'+i+'.bedgraph.gz',force = True)
+        shell_command('rm ' + args.out + '.' + i + '.bedgraph')
+        pysam.tabix_index(args.out + '.' + i + '.bedgraph.gz', preset = "bed", force = True)
     dist_out = FragmentSizes(0, args.upper, vals = nuc_dist)
     dist_out.save(args.out + '.nuc_dist.txt')
 

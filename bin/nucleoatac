@@ -90,6 +90,8 @@ def add_occ_parser( subparsers):
     group1.add_argument('--bed', metavar='bed_file' , help = 'Peaks in bed format', required=True)
     group1.add_argument('--bam', metavar='bam_file',
                     help = 'Sorted (and indexed) BAM file', required=True)
+    group1.add_argument('--fasta', metavar = 'genome_seq',
+                    help = 'Indexed fasta file', required=True)
     group1.add_argument('--out', metavar='basename',
                     help="give output basename", required = True)
     group2 = parser.add_argument_group('General Options', '')
@@ -100,18 +102,18 @@ def add_occ_parser( subparsers):
     group2.add_argument('--cores', metavar = 'int',default=1,
                     help='Number of cores to use',type=int)
     group3 = parser.add_argument_group('Occupancy parameter', 'Change with caution')
-    group3.add_argument('--lower',metavar="int",default=105,
-    help="lower limit in insert size. default is 105",type=int)
     group3.add_argument('--upper',metavar="int",default=251,
     help="upper limit in insert size. default is 251",type=int)
-    group3.add_argument('--flank',metavar="int",default=60,
-    help="Distance on each side of dyad to include",type=int)
+    group3.add_argument('--flank',metavar="int",default=30,
+    help="Distance on each side of dyad to include. Default is 30.",type=int)
     group3.add_argument('--min_occ', metavar = "float", default=0.1,type=float,
                     help="Occupancy cutoff for determining nucleosome distribution. Default is 0.1")
     group3.add_argument('--nuc_sep',metavar='int',default=120,type=int,
-        help = "minimum separation between occupany peaks")
+        help = "minimum separation between occupany peaks. Default is 120.")
     group3.add_argument('--reads', metavar = "int", default=1, type= int,
                     help="Reads cutoff for determining nucleosome distribution. Default is 1.")
+    group4 = parser.add_argument_group("Bias calculation parameters","")
+    group4.add_argument('--pwm', metavar = 'Tn5_PWM', help = "PWM descriptor file. Default is Human.PWM.txt included in package", default = "Human")
     return
 
 def add_vprocess_parser( subparsers):
