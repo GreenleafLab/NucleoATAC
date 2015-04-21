@@ -10,7 +10,7 @@ NucleoATAC is a python package for calling nucleosome positions and occupancy us
 
 ###Needed files
 * Aligned paired-end reads in BAM format.  Must be sorted & indexed.  Probably should be filtered for quality.
-* Fasta file with genome reference.  Must be indexed by faidx from [samtools](http://samtools.sourceforge.net/).
+* Fasta file with genome reference.  Must be indexed by faidx from [samtools](http://www.htslib.org/).
 * Bed file with regions to perform analysis.  Generally will be broad open chromatin regions.
 
 ###Installation

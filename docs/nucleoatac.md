@@ -5,7 +5,7 @@ Prior to using nucleoatac to call nucleosomes, you will need at least three type
 
 1) Bam file with aligned reads.  These generally will be filtered for reads not mapping to mitochondria & reads with high mapping quality.
 
-2) Fasta file with genome used in alignment.  This file must be indexed (using [samtools](http://samtools.sourceforge.net/samtools.shtml#2) faidx)
+2) Fasta file with genome used in alignment.  This file must be indexed (using [samtools](http://www.htslib.org/) faidx)
 
 3) Sorted bed file with regions for which nucleosome analysis is to be performed.  These regions will generally be broad open-chromatin regions (i.e. regions called by MACS2 with the --broad flag).  It is potentially advisable to extend these regions a bit (e.g. using bedtools slop).  Regions should not overlap so it is advisable to use bedtools merge on these regions.
 
