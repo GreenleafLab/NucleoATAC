@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installation - NucleoATAC</title>
+  
+
+  <link rel="shortcut icon" href="../img/favicon.ico">
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../css/highlight.css">
+
+  <script src="../js/jquery-2.1.1.min.js"></script>
+  <script src="../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../js/highlight.pack.js"></script>
+  <script src="../js/theme.js"></script> 
+
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> NucleoATAC</a>
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <ul class="current">
+    
+        
+            <li class="toctree-l1 ">
+                <a class="" href="..">Home</a>
+                
+            </li>
+        
+
+    
+        
+            <li class="toctree-l1 current">
+                <a class="current" href="./">Installation</a>
+                
+                    <ul>
+                    
+                        <li class="toctree-l3"><a href="#dependencies">Dependencies</a></li>
+                        
+                    
+                        <li class="toctree-l3"><a href="#installation">Installation:</a></li>
+                        
+                    
+                        <li class="toctree-l3"><a href="#virtual-environment">Virtual Environment:</a></li>
+                        
+                    
+                        <li class="toctree-l3"><a href="#troubleshooting">Troubleshooting:</a></li>
+                        
+                    
+                    </ul>
+                
+            </li>
+        
+
+    
+        
+            <li class="toctree-l1 ">
+                <a class="" href="../nucleoatac/">nucleoatac</a>
+                
+            </li>
+        
+
+    
+        
+            <li class="toctree-l1 ">
+                <a class="" href="../pyatac/">pyatac</a>
+                
+            </li>
+        
+
+    
+        
+            <li class="toctree-l1 ">
+                <a class="" href="../faq/">FAQ</a>
+                
+            </li>
+        
+
+    
+</ul>
+
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">NucleoATAC</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+    <li>Installation</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              <h3 id="dependencies">Dependencies</h3>
+<p>NucleoATAC was developed and tested on Ubuntu (14.04.1 LTS).
+Not designed for compatability with Windows.</p>
+<p>Python modules required:</p>
+<ul>
+<li>numpy</li>
+<li>scipy</li>
+<li>matplotlib</li>
+<li>cython</li>
+<li>pysam</li>
+</ul>
+<h3 id="installation">Installation:</h3>
+<p>1) Either download latest release or clone repository to ensure you get the latest version: </p>
+<ul>
+<li>See <a href="https://github.com/GreenleafLab/NucleoATAC/releases">releases</a></li>
+<li><code>git clone https://github.com/GreenleafLab/NucleoATAC.git</code></li>
+</ul>
+<p>2) Either:</p>
+<ul>
+<li>Use <a href="https://pip.pypa.io/en/latest/">pip</a> to install, i.e. <code>pip install .</code> when in the NucleoATAC directory</li>
+<li>Use <a href="https://docs.python.org/2/install/">setup.py</a>, i.e. <code>python install setup.py</code> when in the NucleoATAC directory</li>
+</ul>
+<p>For both, installation can be user-specific if desired.  See documentation for pip or setup.py for options on how to do user-specific installation or other features of either installation method.</p>
+<h3 id="virtual-environment">Virtual Environment:</h3>
+<p>Installing nucleoatac within a virtual environment is recommended!  Use <a href="https://virtualenv.pypa.io/en/latest/">virtualenv</a> to create a virtual environment.  For some reason I've found that installing some of the dependencies (mainly scipy) prior to installing NucleoATAC (which will try to install all dependencies) seems to work best.  </p>
+<h3 id="troubleshooting">Troubleshooting:</h3>
+<p>What is version of cython?  If you run <code>import cython</code> then <code>cython.__version__</code> is version 0.22?  I've found that even with the requirement for cython &gt;= 0.22 in setup.py that NucleoATAC may install even if python doesn't automatically import cython v0.22.</p>
+<p>Try installing in virtual environment (see above). Sometimes if older versions of some python packages are available it can be difficult to cleanly upgrade; using a virtual environment allows you to freshly install necessary packages.</p>
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../nucleoatac/" class="btn btn-neutral float-right" title="nucleoatac"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href=".." class="btn btn-neutral" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+    <!-- Copyright etc -->
+    </p>
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+<div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        
+      <span><a href=".." style="color: #fcfcfc;">&laquo; Previous</a></span>
+      <span style="margin-left: 15px"><a href="../nucleoatac/" style="color: #fcfcfc">Next &raquo;</a></span>
+    </span>
+</div>
+
+<!--
+MkDocs version  : 0.12.1
+Docs Build Date : 2015-04-21 18:21:21.077143
+-->
+</body>
+</html>
