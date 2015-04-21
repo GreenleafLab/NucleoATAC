@@ -15,10 +15,12 @@ NucleoATAC is a python package for calling nucleosome positions and occupancy us
 
 ###Installation
 Recommended to install NucleoATAC within virtual environment to minimize chance of issues with older versions of python package dependencies.
+
 * Make and activate python [virtual environment](https://virtualenv.pypa.io/en/latest/)
 * Use pip to install python dependencies: `pip install cython numpy scipy matplotlib pysam`
 
 Either within a python virtual environment or system-wide:
+
 * Get source code:  `git clone https://github.com/GreenleafLab/NucleoATAC`
 * Change into directory: `cd /path/to/NucleoATAC`
 * Install:  `pip install .`
