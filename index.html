@@ -123,23 +123,26 @@
               <h1 id="nucleoatac-documentation">NucleoATAC Documentation</h1>
 <p>For code visit <a href="https://github.com/GreenleafLab/NucleoATAC">GitHub</a>.</p>
 <h2 id="about-nucleoatac">About NucleoATAC</h2>
-<p>NucleoATAC is a python package for calling nucleosome positions and occupancy using ATAC-Seq data.  NucleoATAC also includes other utlities for working with ATAC-seq data.  </p>
+<p>NucleoATAC is a python package for calling nucleosome positions and occupancy using ATAC-Seq data.  Functions for calling nucleosomes are included in the <a href="nucleoatac/">nucleoatac</a> command-line function.  NucleoATAC also includes other utlities for working with ATAC-seq data under the <a href="pyatac/">pyatac</a> function. </p>
 <h2 id="quickstart">QuickStart</h2>
 <h3 id="needed-files">Needed files</h3>
 <ul>
 <li>Aligned paired-end reads in BAM format.  Must be sorted &amp; indexed.  Probably should be filtered for quality.</li>
-<li>Fasta file with genome reference.  Must be indexed by faidx from samtools.</li>
+<li>Fasta file with genome reference.  Must be indexed by faidx from <a href="http://samtools.sourceforge.net/">samtools</a>.</li>
 <li>Bed file with regions to perform analysis.  Generally will be broad open chromatin regions.</li>
 </ul>
 <h3 id="installation">Installation</h3>
-<ul>
-<li>Get source code:  <code>git clone https://github.com/GreenleafLab/NucleoATAC</code></li>
-<li>Change into directory: <code>cd /path/to/NucleoATAC</code></li>
-<li>Install:  <code>pip install .</code></li>
-</ul>
+<p>Recommended to install NucleoATAC within virtual environment to minimize chance of issues with older versions of python package dependencies.
+<em> Make and activate python <a href="https://virtualenv.pypa.io/en/latest/">virtual environment</a>
+</em> Use pip to install python dependencies: <code>pip install cython numpy scipy matplotlib pysam</code></p>
+<p>Either within a python virtual environment or system-wide:
+<em> Get source code:  <code>git clone https://github.com/GreenleafLab/NucleoATAC</code>
+</em> Change into directory: <code>cd /path/to/NucleoATAC</code>
+* Install:  <code>pip install .</code></p>
+<p>For more installation options and troubleshooting, see <a href="installation/">Installation page</a></p>
 <h3 id="calling-nucleosomes">Calling nucleosomes</h3>
 <p><code>nucleoatac run --bed &lt;bedfile&gt; --bam &lt;bamfile&gt; --fasta &lt;fastafile&gt; --out &lt;output_basename&gt; --cores &lt;number_cores_to_use&gt;</code></p>
-<p>Run <code>nucleoatac run --help</code> for all options.  </p>
+<p>Run <code>nucleoatac run --help</code> for all options.  For outputs and more details see <a href="nucleoatac/">nucleoatac page</a></p>
             </div>
           </div>
           <footer>
@@ -180,7 +183,7 @@
 
 <!--
 MkDocs version  : 0.12.1
-Docs Build Date : 2015-04-21 18:21:36.761023
+Docs Build Date : 2015-04-21 18:51:19.754271
 -->
 </body>
 </html>
