@@ -13,4 +13,7 @@
 #
 .DS_Store
 
+#site
+/sites/
+
 
