@@ -11,7 +11,7 @@ Python modules required:
 * pysam
 
 
-###Installation:
+###Installation
 
 1) Either download latest release or clone repository to ensure you get the latest version: 
 
@@ -25,11 +25,11 @@ Python modules required:
 
 For both, installation can be user-specific if desired.  See documentation for pip or setup.py for options on how to do user-specific installation or other features of either installation method.
 
-###Virtual Environment:
+###Virtual Environment
 
 Installing nucleoatac within a virtual environment is recommended!  Use [virtualenv](https://virtualenv.pypa.io/en/latest/) to create a virtual environment.  For some reason I've found that installing some of the dependencies (mainly scipy) prior to installing NucleoATAC (which will try to install all dependencies) seems to work best.  
 
-###Troubleshooting:
+###Troubleshooting
 
 What is version of cython?  If you run `import cython` then `cython.__version__` is version 0.22?  I've found that even with the requirement for cython >= 0.22 in setup.py that NucleoATAC may install even if python doesn't automatically import cython v0.22.
 
