@@ -140,9 +140,6 @@ class VMat:
         if filename:
             fig.savefig(filename)
             plt.close(fig)
-            #Also save text output!
-            filename2 = ".".join(filename.split(".")[:-1]+['txt'])
-            np.savetxt(filename2,mat,delimiter="\t")
         else:
             fig.show()
     def plot_1d(self,filename=None):
