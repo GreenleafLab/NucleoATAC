@@ -21,42 +21,41 @@ class VMat_Error(Exception):
 
 class VMat:
     """Class for storing and processing V-plot matrix"""
-    def __init__(self, mat, i_lower, i_upper):
+    def __init__(self, mat, lower, upper):
         """
         Assumes Vplot is centered!
         Inputs:
         mat = matrix (as numpy array)
-        i_lower = lower bound of insert sizes represented by mat
-        i_upper = upper bound of insert sizes represented by mat
+        lower = lower bound of insert sizes represented by mat
+        upper = upper bound of insert sizes represented by mat
         """
-        if mat.shape[0]!=i_upper-i_lower:
+        if mat.shape[0]!=upper-lower:
             raise VMat_Error("mat shape is not consistent with insert limits")
         self.mat = mat
-        self.auto = None
-        self.i_upper = i_upper
-        self.i_lower = i_lower
+        self.upper = upper
+        self.lower = lower
         self.w = mat.shape[1]/2
-    def trim(self,i_lower,i_upper,w):
+    def trim(self,lower,upper,w):
         """reduce the size of the vplot
 
-        i_lower is new lower bound
-        i_upper is new upper bound
+        lower is new lower bound
+        upper is new upper bound
         w is new flanking region around center
         """
-        up = i_upper-self.i_lower
-        dn = i_lower-self.i_lower
+        up = upper-self.lower
+        dn = lower-self.lower
         left = self.w - w
         right = self.w + w + 1
         if up > self.mat.shape[0] or dn < 0 or left < 0 or right > self.mat.shape[1]:
             raise VMat_Error("Mat is smaller than desired trim")
         self.mat = self.mat[dn:up,left:right]
-        self.i_lower = i_lower
-        self.i_upper = i_upper
+        self.lower = lower
+        self.upper = upper
         self.w = w
     def symmetrize(self):
         """Force the V-plot to be symmetric"""
-        for j in range(self.i_lower,self.i_upper):
-            i=j-self.i_lower
+        for j in range(self.lower,self.upper):
+            i=j-self.lower
             if j%2==1:
                 lefthalf = (self.mat[i,:(self.w+1)]+self.mat[i,self.w:][::-1])*0.5
                 self.mat[i,:] = np.hstack((lefthalf,lefthalf[:-1][::-1]))
@@ -67,8 +66,8 @@ class VMat:
         """Flip V-plot"""
         if mode == 'same':
             new = np.zeros(self.mat.shape)
-            for j in range(self.i_lower,self.i_upper):
-                i = j - self.i_lower
+            for j in range(self.lower,self.upper):
+                i = j - self.lower
                 if j%2==1:
                     new[i,:] = self.mat[i,][::-1]
                 else:
@@ -78,8 +77,8 @@ class VMat:
             self.mat = new
         elif mode == 'valid':
             new = np.zeros((self.mat.shape[0],self.mat.shape[1]-2))
-            for j in range(self.i_lower,self.i_upper):
-                i = j - self.i_lower
+            for j in range(self.lower,self.upper):
+                i = j - self.lower
                 if j%2==1:
                     new[i,:] = self.mat[i,1:-1][::-1]
                 else:
@@ -105,58 +104,14 @@ class VMat:
     def norm_y(self,dist):
         """normalize vplot so insertsize matches supplied distribution"""
         for i in range(self.mat.shape[0]):
-            self.mat[i] = self.mat[i]  * (dist.get(size = i + self.i_lower)/ np.sum(self.mat[i]))
-    def deconvolve(self,maxiters=1000,conv=0.0005,store_changes=False,
-                   maxrange = None):
-        """deconvolve single v-plot from aggregate"""
-        if maxrange is None:
-            maxrange=[self.i_lower,self.i_upper]
-        d = maxrange[0]-self.i_lower
-        u = maxrange[1]-self.i_lower
-        maxind = np.argmax(self.mat[d:u,self.w])+d
-        self.decon_ind = maxind
-        vect = self.mat[maxind,:]
-        #deconvolution
-        psf = vect/np.max(vect)
-        self.psf = psf
-        observed = copy(self.mat)
-        latent = copy(self.mat)
-        if store_changes:
-            dif_vect=[]
-        i=0
-        dif=conv+1000
-        while i<maxiters and dif>conv:
-            a=ndimage.convolve1d(latent,psf)
-            b=observed/(a + (a==0)) * (a!=0)
-            e=ndimage.correlate1d(b,psf)
-            newlatent=latent*e
-            dif=np.sum(abs(newlatent-latent))/np.sum(latent)
-            latent=newlatent
-            i+=1
-            if store_changes:
-                dif_vect=dif_vect+[dif]
-        self.mat = copy(latent)
-        self.deconv_iter = i
-        print i
-        if store_changes:
-            return dif_vect
-    def plot_reconvolved(self,filename = None):
-        """re-convolve deconvolved v-plot with point spread function and plot"""
-        reconv = ndimage.convolve1d(self.mat,self.psf)
-        VMat.plot(self,mat=reconv,title="re-convolved",filename=filename)
-    def autoCorr(self):
-        ##determine the cross-correlation of the V with itself
-        buff = np.zeros((self.mat.shape[0],self.w*2))
-        buffed = np.hstack((buff,self.mat,buff))
-        self.auto = signal.correlate2d(buffed,self.mat,mode="valid")[0]
-        self.auto = self.auto
+            self.mat[i] = self.mat[i]  * (dist.get(size = i + self.lower)/ np.sum(self.mat[i]))
     def converto1d(self):
         """convert the 2d matrix to a 1d representation of insertions"""
-        self.one_d = np.zeros(self.i_upper + self.i_upper%2 +2*self.w+1)
-        center = self.i_upper/2 + self.w
+        self.one_d = np.zeros(self.upper + self.upper%2 +2*self.w+1)
+        center = self.upper/2 + self.w
         for j in range(self.mat.shape[0]):
             for i in range(self.mat.shape[1]):
-                ilen=j+self.i_lower
+                ilen=j+self.lower
                 val = copy(self.mat[j,i])
                 if ilen%2==0:
                     self.one_d[center-(self.w-i)-(ilen/2)]+= val
@@ -171,12 +126,12 @@ class VMat:
         """Plot current main matrix or specified matrix (of same dimensions)"""
         if mat is None:
             mat=self.mat
-        elif mat.shape!=(self.i_upper-self.i_lower,self.w*2+1):
+        elif mat.shape!=(self.upper-self.lower,self.w*2+1):
             raise VMat_Error("dimensions of input mat should match \
                                 dim of vmat")
         fig = plt.figure()
         plt.imshow(mat,origin="lower",interpolation='nearest',
-                extent=[-self.w,self.w,self.i_lower,self.i_upper-1])
+                extent=[-self.w,self.w,self.lower,self.upper-1])
         plt.xlabel("Position relative to dyad")
         plt.ylabel("Insert size")
         if title:
@@ -185,9 +140,6 @@ class VMat:
         if filename:
             fig.savefig(filename)
             plt.close(fig)
-            #Also save text output!
-            filename2 = ".".join(filename.split(".")[:-1]+['txt'])
-            np.savetxt(filename2,mat,delimiter="\t")
         else:
             fig.show()
     def plot_1d(self,filename=None):
@@ -207,42 +159,12 @@ class VMat:
             np.savetxt(filename2,self.one_d,delimiter="\t")
         else:
             fig.show()
-    def plot_psf(self,filename=None):
-        """plot the point spread function used for deconvolution"""
-        fig = plt.figure()
-        plt.plot(range(-self.w,self.w+1),self.psf)
-        plt.xlabel("Position relative to dyad")
-        plt.ylabel("Intensity")
-        plt.title("Point Spread Function")
-        if filename:
-            fig.savefig(filename)
-            plt.close(fig)
-            #Also save text output!
-            filename2 = ".".join(filename.split(".")[:-1]+['txt'])
-            np.savetxt(filename2,self.psf,delimiter="\t")
-        else:
-            fig.show()
-    def plot_auto(self,filename=None):
-        """plot the cross-correlation profile of the v matrix against itself"""
-        fig = plt.figure()
-        xlim = len(self.auto)/2
-        plt.plot(range(-xlim,xlim+1),self.auto)
-        plt.xlabel("Position relative to dyad")
-        plt.ylabel("Autocorrelation")
-        if filename:
-            fig.savefig(filename)
-            plt.close(fig)
-            #Also save text output!
-            filename2 = ".".join(filename.split(".")[:-1]+['txt'])
-            np.savetxt(filename2,self.auto,delimiter="\t")
-        else:
-            fig.show()
     def plot_insertsize(self,filename=None):
         """plot the insert size disribution in the main matrix"""
         fig = plt.figure()
         ins = np.sum(self.mat,axis=1)
         ins = ins/sum(ins)
-        plt.plot(range(self.i_lower,self.i_upper),ins)
+        plt.plot(range(self.lower,self.upper),ins)
         plt.xlabel("Insert Size")
         plt.ylabel("Frequency")
         if filename:
@@ -258,10 +180,10 @@ class VMat:
         out=open(filename,'w')
         out.write('#VMat Descriptor File\n')
         out.write('#Contains VMat and pertinent information\n')
-        out.write('#i_lower\n')
-        out.write(str(self.i_lower)+'\n')
-        out.write('#i_upper\n')
-        out.write(str(self.i_upper)+'\n')
+        out.write('#lower\n')
+        out.write(str(self.lower)+'\n')
+        out.write('#upper\n')
+        out.write(str(self.upper)+'\n')
         out.write('#mat\n')
         for row in self.mat:
             out.write("\t".join(map(str,row))+'\n')
@@ -272,28 +194,25 @@ class VMat:
         infile = open(filename,'r')
         state = ''
         mat = []
-        auto = None
         for line in infile:
-            if '#i_lower' in line:
-                state = 'i_lower'
-            elif '#i_upper' in line:
-                state = 'i_upper'
+            if '#lower' in line:
+                state = 'lower'
+            elif '#upper' in line:
+                state = 'upper'
             elif '#mat' in line:
                 state = 'mat'
             elif '#' in line:
                 state = 'other'
-            elif state == 'i_lower':
-                i_lower = int(line.strip('\n'))
-            elif state == 'i_upper':
-                i_upper = int(line.strip('\n'))
+            elif state == 'lower':
+                lower = int(line.strip('\n'))
+            elif state == 'upper':
+                upper = int(line.strip('\n'))
             elif state == 'mat':
                 mat.append(map(float,line.strip('\n').split('\t')))
         try:
-            new = VMat(np.array(mat), i_lower, i_upper)
+            new = VMat(np.array(mat), lower, upper)
         except NameError:
             raise VMat_Error("VMat decriptor file appeas to be missing some\
 needed components")
-        if auto:
-            new.auto = auto
         infile.close()
         return new
