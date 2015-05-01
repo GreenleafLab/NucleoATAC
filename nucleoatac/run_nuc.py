@@ -18,7 +18,7 @@ from nucleoatac.Occupancy import FragmentMixDistribution, OccupancyCalcParams
 from nucleoatac.NucleosomeCalling import NucChunk, NucParameters
 from pyatac.fragmentsizes import FragmentSizes
 from pyatac.bias import PWM
-from nucleoatac.VMat import VMat
+from pyatac.VMat import VMat
 
 def _nucHelper(arg):
     """function to get occupancy for a set of bed regions

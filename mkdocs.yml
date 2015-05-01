@@ -1,0 +1,10 @@
+site_name: NucleoATAC
+pages:
+    - [index.md, Home]
+    - [installation.md, Installation]
+    - [nucleoatac.md, nucleoatac]
+    - [pyatac.md, pyatac]
+    - [faq.md, FAQ]
+theme: readthedocs
+
+
