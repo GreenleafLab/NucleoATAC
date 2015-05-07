@@ -35,8 +35,8 @@ def _signalHelper(arg):
         agg = np.zeros(params.up + params.down + 1)
     for chunk in chunks:
         try:
+            chunk.center()
             if params.up!=0 and params.down!=0:
-                chunk.center()
                 chunk.slop(chromDict = params.chrs, up = params.up, down = params.down)
             sig = bg.read(chunk.chrom, chunk.start, chunk.end)
             if params.up!=0 and params.down!=0 and len(sig) != (params.up + params.down + 1):
