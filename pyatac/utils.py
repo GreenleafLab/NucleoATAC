@@ -10,6 +10,7 @@ import numpy as np
 from scipy import signal
 import pysam
 import warnings
+from copy import copy
 
 #Run shell command
 def shell_command(cmd):
@@ -39,9 +40,15 @@ def smooth(sig, window_len, window='flat', sd = None, mode = 'valid',
         w = signal.gaussian(window_len,sd)
     if window=="flat":
         w = np.ones(window_len)
+    sig_nonan = copy(sig)
+    sig_nonan[np.isnan(sig)] = 0
+    smoothed = np.convolve(w, sig_nonan, mode = mode) 
     if norm:
-        w = w/sum(w)
-    smoothed = np.convolve(w, sig, mode = mode)
+        norm_sig = np.ones(len(sig))
+        norm_sig[np.isnan(sig)] = 0
+        smoothed_norm = np.convolve(w, norm_sig, mode = mode)
+        smoothed_norm[smoothed_norm==0] = np.nan
+        smoothed = smoothed / smoothed_norm
     return smoothed
 
 
