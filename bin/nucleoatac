@@ -136,6 +136,8 @@ def add_occ_parser( subparsers):
                     help="Occupancy cutoff for determining nucleosome distribution. Default is 0.1")
     group3.add_argument('--nuc_sep',metavar='int',default=120,type=int,
         help = "minimum separation between occupany peaks. Default is 120.")
+    group3.add_argument('--confidence_interval', meatavar='float',default=0.9,type=float,
+        help = "confidence interval level for lower and upper bounds.  default is 0.9, should be between 0 and 1")
    return
 
 def add_merge_parser( subparsers):
