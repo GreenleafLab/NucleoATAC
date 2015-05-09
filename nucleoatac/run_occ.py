@@ -74,7 +74,7 @@ def _writePeaks(pos_queue, out):
     out_handle.close()
     return True
 
-def run_occ(args, bases = 500000):
+def run_occ(args):
     """run occupancy calling
 
     """
@@ -82,7 +82,7 @@ def run_occ(args, bases = 500000):
     pwm = PWM.open(args.pwm)
     chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = args.flank + args.upper/2 + max(pwm.up,pwm.down))
     chunks.merge()
-    maxQueueSize = max(2,int(100 * bases / np.mean([chunk.length() for chunk in chunks])))
+    maxQueueSize = args.cores*10
     fragment_dist = FragmentMixDistribution(0, upper = args.upper)
     if args.sizes is not None:
         tmp = FragmentSizes.open(args.sizes)
@@ -94,7 +94,7 @@ def run_occ(args, bases = 500000):
     fragment_dist.fragmentsizes.save(args.out + '.fragmentsizes.txt')
     params = OccupancyParameters(fragment_dist, args.upper, args.fasta, args.pwm, sep = args.nuc_sep, min_occ = args.min_occ,
             flank = args.flank, bam = args.bam, ci = args.confidence_interval, step = args.step)
-    sets = chunks.split(bases = bases)
+    sets = chunks.split(items = args.cores * 5)
     pool1 = mp.Pool(processes = max(1,args.cores-1))
     out_handle1 = open(args.out + '.occ.bedgraph','w')
     out_handle1.close()

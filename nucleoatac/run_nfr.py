@@ -51,7 +51,7 @@ def _writeNFR(pos_queue, out):
 
 
 
-def run_nfr(args, bases = 500000):
+def run_nfr(args):
     """run nfr calling
 
     """
@@ -59,10 +59,10 @@ def run_nfr(args, bases = 500000):
         args.out = '.'.join(os.path.basename(args.calls).split('.')[0:-3])
     chunks = ChunkList.read(args.bed)
     chunks.merge()
-    maxQueueSize = max(2,int(100 * bases / np.mean([chunk.length() for chunk in chunks])))
+    maxQueueSize = args.cores * 10 
     params = NFRParameters(args.occ_track, args.calls, max_occ = args.max_occ, max_occ_upper = args.max_occ_upper, 
                             max_nfr_gap = args.max_nfr_gap, min_nfr_len = args.min_nfr_len)
-    sets = chunks.split(bases = bases)
+    sets = chunks.split(items = args.cores * 5)
     pool1 = mp.Pool(processes = max(1,args.cores-1))
     nfr_handle = open(args.out + '.nfrpos.bed','w')
     nfr_handle.close()

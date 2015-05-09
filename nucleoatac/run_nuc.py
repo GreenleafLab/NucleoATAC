@@ -138,7 +138,7 @@ _writeFuncs = {'nucpos' : _writeNucPos, 'nucpos.redundant' : _writeNucPosRedunda
                'nucleoatac_signal.smooth' : _writeSmooth}
 
 
-def run_nuc(args, bases = 500000):
+def run_nuc(args):
     """run occupancy calling
 
     """
@@ -147,7 +147,7 @@ def run_nuc(args, bases = 500000):
     pwm = PWM.open(args.pwm)
     chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = vmat.mat.shape[1] + vmat.upper/2 + max(pwm.up,pwm.down), min_length = args.nuc_sep * 2)
     chunks.merge()
-    maxQueueSize = max(2,int(100 * bases / np.mean([chunk.length() for chunk in chunks])))
+    maxQueueSize = args.cores*10
     if args.sizes is not None:
         fragment_dist = FragmentSizes.open(args.sizes)
     else:
@@ -157,7 +157,7 @@ def run_nuc(args, bases = 500000):
                            occ_track = args.occ_track,
                            sd = args.sd, nonredundant_sep = args.nuc_sep, redundant_sep = args.redundant_sep,
                            min_z = args.min_z, min_lr = args.min_lr )
-    sets = chunks.split( bases = bases)
+    sets = chunks.split(items = args.cores*5)
     pool1 = mp.Pool(processes = max(1,args.cores-1))
     if args.write_all:
         outputs = ['nucpos','nucpos.redundant','nucleoatac_signal','nucleoatac_signal.smooth',
