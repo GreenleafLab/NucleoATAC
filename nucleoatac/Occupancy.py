@@ -123,7 +123,7 @@ class OccupancyTrack(Track):
                                          axis = 1)
             if sum(new_inserts)>0:
                 left = i - params.halfstep
-                right = min(i + params.halfstep + 1, len(vals))
+                right = min(i + params.halfstep + 1, len(self.vals))
                 self.vals[left:right],self.lower_bound[left:right],self.upper_bound[left:right] = calculateOccupancy(new_inserts, new_bias, params.occ_calc_params)
     def makeSmoothed(self, window_len = 151, window = "gaussian", sd = 25):
         self.smoothed_vals = smooth(self.vals, window_len, window = window, sd = sd,
