@@ -131,14 +131,16 @@ def add_occ_parser( subparsers):
     group3.add_argument('--upper',metavar="int",default=251,
     help="upper limit in insert size. default is 251",type=int)
     group3.add_argument('--flank',metavar="int",default=30,
-    help="Distance on each side of dyad to include. Default is 30.",type=int)
+    help="Distance on each side of dyad to include for local occ calculation. Default is 30.",type=int)
     group3.add_argument('--min_occ', metavar = "float", default=0.1,type=float,
                     help="Occupancy cutoff for determining nucleosome distribution. Default is 0.1")
     group3.add_argument('--nuc_sep',metavar='int',default=120,type=int,
         help = "minimum separation between occupany peaks. Default is 120.")
-    group3.add_argument('--confidence_interval', meatavar='float',default=0.9,type=float,
+    group3.add_argument('--confidence_interval', metavar='float',default=0.9,type=float,
         help = "confidence interval level for lower and upper bounds.  default is 0.9, should be between 0 and 1")
-   return
+    group3.add_argument('--step', metavar = 'int', default = 5, type=int,
+        help= "step size along genome for comuting occ. Default is 5.  Should be odd, or will be subracted by 1")
+    return
 
 def add_merge_parser( subparsers):
     """Add argument parser for merge utility"""

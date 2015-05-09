@@ -93,7 +93,7 @@ def run_occ(args, bases = 500000):
     fragment_dist.plotFits(args.out + '.occ_fit.eps')
     fragment_dist.fragmentsizes.save(args.out + '.fragmentsizes.txt')
     params = OccupancyParameters(fragment_dist, args.upper, args.fasta, args.pwm, sep = args.nuc_sep, min_occ = args.min_occ,
-            flank = args.flank, bam = args.bam, ci = args.confidence_interval)
+            flank = args.flank, bam = args.bam, ci = args.confidence_interval, step = args.step)
     sets = chunks.split(bases = bases)
     pool1 = mp.Pool(processes = max(1,args.cores-1))
     out_handle1 = open(args.out + '.occ.bedgraph','w')

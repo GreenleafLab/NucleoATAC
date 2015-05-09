@@ -114,7 +114,7 @@ class OccupancyTrack(Track):
         self.vals=np.ones(self.end - self.start)*float('nan')
         self.lower_bound = np.ones(self.end - self.start)*float('nan')
         self.upper_bound =np.ones(self.end - self.start)*float('nan')
-        for i in xrange(len(self.vals)):
+        for i in xrange(params.halfstep,len(self.vals),params.step):
             new_inserts = np.sum(mat.get(lower = 0, upper = params.upper,
                                          start = self.start+i-params.flank, end = self.start+i+params.flank+1),
                                          axis = 1)
@@ -122,7 +122,9 @@ class OccupancyTrack(Track):
                                          start = self.start+i-params.flank, end = self.start+i+params.flank+1),
                                          axis = 1)
             if sum(new_inserts)>0:
-                self.vals[i],self.lower_bound[i],self.upper_bound[i] = calculateOccupancy(new_inserts, new_bias, params.occ_calc_params)
+                left = i - params.halfstep
+                right = min(i + params.halfstep + 1, len(vals))
+                self.vals[left:right],self.lower_bound[left:right],self.upper_bound[left:right] = calculateOccupancy(new_inserts, new_bias, params.occ_calc_params)
     def makeSmoothed(self, window_len = 151, window = "gaussian", sd = 25):
         self.smoothed_vals = smooth(self.vals, window_len, window = window, sd = sd,
                            mode = "same", norm = True) 
@@ -154,7 +156,7 @@ class OccPeak(Chunk):
 class OccupancyParameters:
     """Class for storing parmeers related to Occupancy determination"""
     def __init__(self, insert_dist, upper, fasta, pwm, sep = 120, min_occ = 0.25, flank = 30,
-                 out = None, bam = None, ci = 0.9):
+                 out = None, bam = None, ci = 0.9, step = 5):
         self.sep = sep
         self.chrs = read_chrom_sizes_from_fasta(fasta)
         self.fasta = fasta
@@ -166,7 +168,10 @@ class OccupancyParameters:
         self.bam = bam
         self.upper = upper
         self.occ_calc_params = OccupancyCalcParams(0, upper, insert_dist, ci = ci)
-
+        if step%2 == 0:
+            step = step - 1
+        self.step = step
+        self.halfstep = (self.step-1) / 2
 
 class OccChunk(Chunk):
     """Class for calculating occupancy and occupancy peaks
