@@ -81,13 +81,13 @@ class NFRChunk(Chunk):
         prev_start = starts[0]
         for i in xrange(1,len(starts)+1):
             if i >= len(ends):
-                if (prev_end - prev_start) > self.params.min_nfr_len and np.min(self.occ_upper.vals[prev_start:prev_end]) < self.params.max_occ:
+                if (prev_end - prev_start) > self.params.min_nfr_len:
                     self.nfrs.append(NFR(self.start + prev_start, self.start + prev_end, self))
                 return
             if starts[i] < prev_end + self.params.max_nfr_gap:
                 prev_end = ends[i]
             else:
-                if (prev_end - prev_start) > self.params.min_nfr_len and np.min(self.occ_upper.vals[prev_start:prev_end]) < self.params.max_occ:
+                if (prev_end - prev_start) > self.params.min_nfr_len:
                     self.nfrs.append(NFR(self.start + prev_start, self.start + prev_end, self))
                 prev_start = starts[i]
                 prev_end = ends[i]
