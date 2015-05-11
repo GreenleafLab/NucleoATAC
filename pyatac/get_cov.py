@@ -27,7 +27,7 @@ def _covHelper(arg):
         mat.makeFragmentMat(args.bam)
         cov = CoverageTrack(chunk.chrom, chunk.start, chunk.end)
         cov.calculateCoverage(mat, lower = args.lower, upper = args.upper, window_len = args.window)
-        cov.vals /= args.scale / float(args.window)
+        cov.vals *= args.scale / float(args.window)
     except Exception as e:
         print('Caught exception when processing:\n'+  chunk.asBed()+"\n")
         traceback.print_exc()
