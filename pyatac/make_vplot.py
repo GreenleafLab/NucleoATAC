@@ -10,7 +10,7 @@ import os
 import numpy as np
 import matplotlib as mpl
 mpl.use('PS')
-import pyximport; pyximport.install(setup_args={"include_dirs":numpy.get_include()})
+import pyximport; pyximport.install(setup_args={"include_dirs":np.get_include()})
 from pyatac.chunk import ChunkList
 from pyatac.chunkmat2d import FragmentMat2D
 import VMat as V

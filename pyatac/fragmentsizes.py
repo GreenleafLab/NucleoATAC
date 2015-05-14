@@ -6,7 +6,7 @@ Classes for working with fragment distribution
 
 import numpy as np
 import pyximport
-pyximport.install(setup_args={"include_dirs":numpy.get_include()})
+pyximport.install(setup_args={"include_dirs":np.get_include()})
 from pyatac.fragments import getAllFragmentSizes, getFragmentSizesFromChunkList
 
 
