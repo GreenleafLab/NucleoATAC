@@ -3,7 +3,7 @@ from scipy import signal
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from pyatac.tracks import InsertionTrack
-import pyximport; pyximport.install()
+import pyximport; pyximport.install(setup_args={"include_dirs":np.get_include()})
 from fragments import makeFragmentMat
 
 class ChunkMat2D:
