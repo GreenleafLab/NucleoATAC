@@ -8,7 +8,7 @@ Classes for computing nucleosome occupancy
 from scipy import signal, optimize
 import numpy as np
 import matplotlib.pyplot as plt
-import pyximport; pyximport.install()
+import pyximport; pyximport.install(setup_args={"include_dirs":numpy.get_include()})
 from pyatac.fragmentsizes import FragmentSizes
 from pyatac.tracks import Track, CoverageTrack
 from pyatac.chunk import Chunk

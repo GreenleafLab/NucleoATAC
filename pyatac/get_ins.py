@@ -12,7 +12,7 @@ import itertools
 import numpy as np
 import pysam
 import traceback
-import pyximport; pyximport.install()
+import pyximport; pyximport.install(setup_args={"include_dirs":numpy.get_include()})
 from pyatac.tracks import InsertionTrack
 from pyatac.chunk import ChunkList
 from pyatac.utils import shell_command, read_chrom_sizes_from_bam
