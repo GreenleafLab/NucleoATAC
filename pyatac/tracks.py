@@ -56,7 +56,9 @@ class Track(Chunk):
         for i in range(len(vals)):
             if vals[i] == prev_value:
                 pass
-            elif prev_value is not None:
+            elif np.isnan(vals[i]):
+                prev_value = vals[i]
+            elif prev_value is not None and not np.isnan(prev_value):
                 if write_zero or prev_value!=0:
                     output += "\t".join(map(str,[self.chrom,start_range,start+i,prev_value]))+"\n"
                 start_range = start + i
@@ -64,7 +66,10 @@ class Track(Chunk):
             else:
                 start_range = start + i
                 prev_value = vals[i]
-        if write_zero or prev_value!=0:
+        if prev_value==0:
+            if write_zero:
+                output += "\t".join(map(str,[self.chrom,start_range,end,prev_value]))+"\n"
+        elif not np.isnan(prev_value):
             output += "\t".join(map(str,[self.chrom,start_range,end,prev_value]))+"\n"
         handle.write(output)
     def read_track(self, bedgraph, start = None, end = None, empty = np.nan, flank = None):

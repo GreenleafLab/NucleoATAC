@@ -49,6 +49,10 @@ def main():
         from pyatac.get_ins import get_ins
         print('---------Getting insertions to make track---------------------------------------')
         get_ins(args)
+    elif call == "cov":
+        from pyatac.get_cov import get_cov
+        print('---------Getting insertions to make track---------------------------------------')
+        get_cov(args)
     elif call == "nucleotide":
         from pyatac.get_nucleotide import get_nucleotide
         print ('---------Getting nucleotide content---------------------------------------')
@@ -87,6 +91,8 @@ def pyatac_parser():
     add_signal_parser( subparsers)
 
     add_ins_parser( subparsers)
+
+    add_cov_parser( subparsers)
 
     add_bias_parser( subparsers)
 
@@ -315,6 +321,31 @@ def add_ins_parser( subparsers):
         size",default=2000,type=int)
     group3.add_argument('--smooth', metavar = "int", type = int,
                          help = "smoothing window for guassian smoothing.  default is no smoothing")
+    group3.add_argument('--not_atac', action="store_false", dest = "atac", default = True, help = "Don't use atac offsets")
+    return
+
+def add_cov_parser( subparsers):
+    """Add argument parsers for the cov utility
+
+    """
+    parser = subparsers.add_parser("cov", help = "pyatac function-- get coverage")
+    group1 = parser.add_argument_group('Required', 'Necessary arguments')
+    group1.add_argument('--bam', metavar='bam_file', help = 'Accepts sorted BAM file',required=True)
+    group2 = parser.add_argument_group('General options', '')
+    group2.add_argument('--bed', metavar='bed_file' , help = 'Regions in which to get insertions')
+    group2.add_argument('--out', metavar='basename')
+    group2.add_argument('--cores', metavar = 'int',default=1,
+                    help='Number of cores to use',type=int)
+
+    group3 = parser.add_argument_group('insertion option', 'Size range, smoothing')
+    group3.add_argument('--lower',metavar="int", help = 'lower limit on insert \
+        size',default=0,type=int)
+    group3.add_argument('--upper', metavar="int",help="upper limit on insert \
+        size",default=2000,type=int)
+    group3.add_argument('--window', metavar = "int", type = int, default = 121,
+                         help = "window for flat smoothing of coverage.  default is 121, should be odd")
+    group3.add_argument('--scale', metavar = "float", type = float, default = 10,
+                         help = "scaling value.  default is 10, corresponding to signal corresponding to # of fragment centers  per 10 bp. Use 1 for fragments per 1 bp.")
     group3.add_argument('--not_atac', action="store_false", dest = "atac", default = True, help = "Don't use atac offsets")
     return
 

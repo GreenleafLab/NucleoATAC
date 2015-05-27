@@ -5,6 +5,7 @@ General tools for dealing with ATAC-Seq data using Python.
 @author: Alicia Schep, Greenleaf Lab, Stanford University
 """
 
+import gzip
 
 class Chunk():
     """Class that stores reads for a particular chunk of the genome"""
@@ -123,15 +124,16 @@ class ChunkList(list):
     def read(bedfile, weight_col=None, strand_col = None, name_col = None, chromDict = None,
                 min_offset = None, min_length = 1):
         """Make a list of chunks from a tab-delimited bedfile"""
-        infile = open(bedfile,"r")
+        if bedfile[-3:] == '.gz':
+            infile = gzip.open(bedfile,"r")
+        else:
+            infile = open(bedfile,"r")
         out = ChunkList()
         weight = None
         strand = "+"
         name = None
-        while 1:
-            in_line = infile.readline().rstrip('\n').split("\t")
-            if not in_line[0]:
-                break
+        for line in infile:
+            in_line = line.rstrip('\n').split("\t")
             if weight_col:
                 weight=in_line[weight_col-1]
             if strand_col:
