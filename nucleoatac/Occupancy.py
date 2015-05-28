@@ -198,7 +198,7 @@ class OccChunk(Chunk):
         """calculate occupancy for chunk"""
         self.occ = OccupancyTrack(self.chrom,self.start,self.end)
         self.occ.calculateOccupancyMLE(self.mat, self.bias_mat, self.params)
-        self.occ.makeSmoothed(window = self.params.flank*2 + 1, sd = self.params.flank/3.0)
+        self.occ.makeSmoothed(window_len = self.params.window, sd = self.params.flank/3.0)
     def getCov(self):
         """Get read coverage for regions"""
         self.cov = CoverageTrack(self.chrom, self.start, self.end)
