@@ -125,12 +125,12 @@ class OccupancyTrack(Track):
                 left = i - params.halfstep
                 right = min(i + params.halfstep + 1, len(self.vals))
                 self.vals[left:right],self.lower_bound[left:right],self.upper_bound[left:right] = calculateOccupancy(new_inserts, new_bias, params.occ_calc_params)
-    def makeSmoothed(self, window_len = 151, window = "gaussian", sd = 25):
-        self.smoothed_vals = smooth(self.vals, window_len, window = window, sd = sd,
+    def makeSmoothed(self, window_len = 121, sd = 20):
+        self.smoothed_vals = smooth(self.vals, window_len, window = "gaussian", sd = sd,
                            mode = "same", norm = True) 
-        self.smoothed_lower = smooth(self.lower_bound, window_len, window = window, sd = sd,
+        self.smoothed_lower = smooth(self.lower_bound, window_len, window = "gaussian", sd = sd,
                            mode = "same", norm = True)
-        self.smoothed_upper = smooth(self.upper_bound, window_len, window = window, sd = sd,
+        self.smoothed_upper = smooth(self.upper_bound, window_len, window = "gaussian", sd = sd,
                            mode = "same", norm = True)
 
 class OccPeak(Chunk):
@@ -198,7 +198,7 @@ class OccChunk(Chunk):
         """calculate occupancy for chunk"""
         self.occ = OccupancyTrack(self.chrom,self.start,self.end)
         self.occ.calculateOccupancyMLE(self.mat, self.bias_mat, self.params)
-        self.occ.makeSmoothed()
+        self.occ.makeSmoothed(window = self.params.flank*2 + 1, sd = self.params.flank/3.0)
     def getCov(self):
         """Get read coverage for regions"""
         self.cov = CoverageTrack(self.chrom, self.start, self.end)
