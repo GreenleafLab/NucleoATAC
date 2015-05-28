@@ -155,7 +155,7 @@ class OccPeak(Chunk):
 
 class OccupancyParameters:
     """Class for storing parmeers related to Occupancy determination"""
-    def __init__(self, insert_dist, upper, fasta, pwm, sep = 120, min_occ = 0.25, flank = 30,
+    def __init__(self, insert_dist, upper, fasta, pwm, sep = 120, min_occ = 0.1, flank = 60,
                  out = None, bam = None, ci = 0.9, step = 5):
         self.sep = sep
         self.chrs = read_chrom_sizes_from_fasta(fasta)
