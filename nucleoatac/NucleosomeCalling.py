@@ -13,7 +13,7 @@ from nucleoatac.multinomial_cov import calculateCov
 from nucleoatac.Occupancy import OccupancyTrack
 from pyatac.tracks import Track, CoverageTrack
 from pyatac.chunk import Chunk
-from pyatac.utils import call_peaks, reduce_peaks, read_chrom_sizes_from_fasta
+from pyatac.utils import call_peaks, reduce_peaks, read_chrom_sizes_from_bam
 from pyatac.chunkmat2d import FragmentMat2D, BiasMat2D
 from pyatac.bias import InsertionBiasTrack, PWM
 
@@ -221,7 +221,7 @@ class NucParameters:
         self.nonredundant_sep = nonredundant_sep
         self.fasta = fasta
         self.pwm = PWM.open(pwm)
-        self.chrs = read_chrom_sizes_from_fasta(fasta)
+        self.chrs = read_chrom_sizes_from_bam(bam)
         self.bam = bam
         self.occ_track = occ_track
 
