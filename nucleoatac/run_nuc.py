@@ -156,7 +156,7 @@ def run_nuc(args):
     params = NucParameters(vmat = vmat, fragmentsizes = fragment_dist, bam = args.bam, fasta = args.fasta, pwm = args.pwm,
                            occ_track = args.occ_track,
                            sd = args.sd, nonredundant_sep = args.nuc_sep, redundant_sep = args.redundant_sep,
-                           min_z = args.min_z, min_lr = args.min_lr )
+                           min_z = args.min_z, min_lr = args.min_lr , atac = args.atac)
     sets = chunks.split(items = args.cores*5)
     pool1 = mp.Pool(processes = max(1,args.cores-1))
     if args.write_all:
