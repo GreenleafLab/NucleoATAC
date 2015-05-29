@@ -97,6 +97,14 @@ class ChunkList(list):
     def isSorted(self):
         """check that regions are sorted"""
         return all([_chunkCompare(self[i],self[i+1])==-1 for i in xrange(len(self)-1)])
+    def slop(self, chromDict, up = 0, down = 0, new = False):
+        out = ChunkList()
+        for i in self:
+            out.append(i.slop(chromDict, up, down, new = True))
+        if new:
+            return out
+        else:
+            self[:] = out
     def merge(self, new = False, sep = -1):
         """Merge overlapping or nearby regions"""
         if not self.isSorted():
