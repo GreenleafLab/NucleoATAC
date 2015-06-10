@@ -64,7 +64,8 @@ def main():
         merge_args = parser.parse_args(['merge','--occpeaks',args.out +'.occpeaks.bed.gz','--nucpos',args.out+'.nucpos.bed.gz',
                                         '--out',args.out])
         nfr_args = parser.parse_args(['nfr','--bed', args.bed, '--occ_track', args.out + '.occ.bedgraph.gz', '--calls', 
-                                        args.out + '.nucmap_combined.bed.gz','--out',args.out])
+                                        args.out + '.nucmap_combined.bed.gz','--out',args.out, '--fasta', args.fasta, 
+                                        '--pwm', args.pwm , '--bam', args.bam])
         from nucleoatac.run_occ import run_occ
         from nucleoatac.run_vprocess import run_vprocess
         from nucleoatac.run_nuc import run_nuc
@@ -168,19 +169,24 @@ def add_nfr_parser( subparsers):
                        help = "bgzip compressed, tabix-indexed bedgraph file with occcupancy track.")
     group1.add_argument('--calls', metavar = 'nucpos_file', required = True,
                        help = "bed file with nucleosome center calls")
+    group6 = parser.add_argument_group("Insertion track options","Either input insertion track or bamfile")
+    group6.add_argument('--ins_track', metavar = 'ins_file', 
+                        help = "bgzip compressed, tabix-indexed bedgraph file with insertion track. will be generated if not included")
+    group6.add_argument('--bam', metavar='bam_file',
+                    help = 'Sorted (and indexed) BAM file')
+    group4 = parser.add_argument_group("Bias calculation information","Highly recommended. If fasta is not provided, will not calculate bias")
+    group4.add_argument('--fasta', metavar = 'genome_seq',
+                    help = 'Indexed fasta file')
+    group4.add_argument('--pwm', metavar = 'Tn5_PWM', help = "PWM descriptor file. Default is Human.PWM.txt included in package", default = "Human")
     group2 = parser.add_argument_group("General options","optional")
     group2.add_argument('--out', metavar = 'out_basename', help = "output file basename")
     group2.add_argument('--cores', metavar = 'num_cores',default=1,
                     help='Number of cores to use',type=int)
     group5 = parser.add_argument_group("NFR determination parameters")
     group5.add_argument('--max_occ', metavar= 'float', default = 0.1,
-        help = 'Maximum occupancy for NFR. Default is 0.1', type = float)
+        help = 'Maximum mean occupancy for NFR. Default is 0.1', type = float)
     group5.add_argument('--max_occ_upper', metavar= 'float', default = 0.25,
-        help = 'Maximum upper bound occupancy for NFR. Default is 0.25', type = float)
-    group5.add_argument('--max_nfr_gap', metavar = 'int', default = 10, type = int,
-        help = "maximum distance between nfr regions to merg. default is 10")
-    group5.add_argument('--min_nfr_len', metavar = 'int', default = 10, type=int,
-        help = "minimum length for an NFR call. default is 10bp")
+        help = 'Maximum for minimum of  upper bound occupancy in NFR. Default is 0.25', type = float)
  
 
 def add_vprocess_parser( subparsers):

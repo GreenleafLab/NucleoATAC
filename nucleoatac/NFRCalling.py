@@ -6,9 +6,12 @@ Script with classes and functions for nucleosome calling.
 
 import numpy as np
 import pysam
-from pyatac.tracks import Track
+from pyatac.tracks import Track, InsertionTrack
 from pyatac.chunk import Chunk
+from pyatac.utils import read_chrom_sizes_from_fasta
+from pyatac.bias import PWM, InsertionBiasTrack
 from copy import copy
+
 
 class NFR(Chunk):
     """Class for storing information about a single NFR region"""
@@ -17,26 +20,32 @@ class NFR(Chunk):
         self.start = left
         self.end = right
         self.strand = "*"
-        self.occ = np.mean(nfrtrack.occ.vals[(left - nfrtrack.occ.start):(right -nfrtrack.occ.start)])
-        self.min_upper = np.min(nfrtrack.occ_upper.vals[(left - nfrtrack.occ.start):(right -nfrtrack.occ.start)])
-        self.min_lower = np.min(nfrtrack.occ_lower.vals[(left - nfrtrack.occ.start):(right -nfrtrack.occ.start)])
+        self.occ = np.mean(nfrtrack.occ.get(left,right))
+        self.min_upper = np.min(nfrtrack.occ_upper.get(left,right))
+        self.ins_density = np.mean(nfrtrack.ins.get(left,right))
+        self.bias_density = np.mean(nfrtrack.bias.get(left, right, log = False))
     def asBed(self):
-        out = "\t".join(map(str,[self.chrom, self.start, self.end, self.occ, self.min_lower, self.min_upper]))
+        out = "\t".join(map(str,[self.chrom, self.start, self.end, self.occ, self.min_upper, self.ins_density, self.bias_density]))
         return out 
     def write(self, handle):
         handle.write(self.asBed() + "\n")
 
 
-
 class NFRParameters:
     """Class for storing parameters related to nucleosome calling"""
-    def __init__(self, occ_track, calls, max_occ = 0.1, max_occ_upper = 0.25, max_nfr_gap = 10, min_nfr_len = 10):
+    def __init__(self, occ_track,calls, ins_track = None, bam = None, max_occ = 0.25, max_occ_upper = 0.25, fasta = None, pwm = None):
+        self.bam = bam
+        self.ins_track = ins_track
         self.occ_track = occ_track
         self.calls = calls
-        self.max_nfr_gap = max_nfr_gap
         self.max_occ = max_occ
         self.max_occ_upper = max_occ_upper
-        self.min_nfr_len = min_nfr_len
+        self.fasta = fasta
+        if fasta is not None:
+            self.pwm = PWM.open(pwm)
+            self.chrs = read_chrom_sizes_from_fasta(fasta)
+  
+
 
 class NFRChunk(Chunk):
     """Class for storing and determining collection of nfr positions
@@ -49,52 +58,50 @@ class NFRChunk(Chunk):
     def initialize(self, parameters):
         self.params = parameters
     def getOcc(self):
-        """gets occupancy track-- either reads in from bw handle given, or makes new"""
+        """gets occupancy track-- reads in from bedgraph"""
         self.occ = Track(self.chrom,self.start,self.end,"Occupancy")
         self.occ.read_track(self.params.occ_track)
-        lower_file = self.params.occ_track[:-11] + 'lower_bound.bedgraph.gz'
-        self.occ_lower = Track(self.chrom,self.start,self.end,"Occupancy")
-        self.occ_lower.read_track(lower_file)
+        #lower_file = self.params.occ_track[:-11] + 'lower_bound.bedgraph.gz'
+        #self.occ_lower = Track(self.chrom,self.start,self.end,"Occupancy")
+        #self.occ_lower.read_track(lower_file)
         upper_file = self.params.occ_track[:-11] + 'upper_bound.bedgraph.gz'
         self.occ_upper = Track(self.chrom,self.start,self.end,"Occupancy")
         self.occ_upper.read_track(upper_file)
+    def getIns(self):
+        """gets insertion track-- reads in from bedgraph"""
+        if self.params.ins_track is None:
+            self.ins = InsertionTrack(self.chrom, self.start, self.end)
+            self.ins.calculateInsertions(self.params.bam)
+        else:
+            self.ins = Track(self.chrom,self.start,self.end,"Insertion")
+            self.ins.read_track(self.params.ins_track)
+    def getBias(self):
+        """get bias"""
+        self.bias = InsertionBiasTrack(self.chrom, self.start,
+                                  self.end, log = True)
+        if self.params.fasta is not None:
+            self.bias.computeBias(self.params.fasta, self.params.chrs, self.params.pwm)
     def findNFRs(self):
         """find NFR regions"""
         region = np.ones(self.length())
         tbx = pysam.TabixFile(self.params.calls)
+        nucs = []
         for row in tbx.fetch(self.chrom, self.start, self.end, parser = pysam.asTuple()):
-            region[max(int(row[1]) - self.start - 73,0):min(int(row[2])-self.start + 73,self.end-self.start)] = 0
-        tbx.close()
-        tmp = copy(self.occ.vals)
-        tmp[np.where(np.isnan(tmp))] = 1
-        tmp2 = copy(self.occ_upper.vals)
-        tmp2[np.where(np.isnan(tmp2))] = 1
-        region[np.where(tmp > self.params.max_occ)] = 0
-        region[np.where(tmp2 > self.params.max_occ_upper)] = 0
-        starts = [i for i in xrange(1,len(region)-1) if (region[i] == 1 and region[i-1] == 0)]
-        if len(starts) == 0:
-            return
-        ends = [i for i in xrange(starts[0],len(region)) if (region[i] ==0 and region[i-1] ==1)]
-        if len(ends) == 0:
-            return
-        prev_end = ends[0]
-        prev_start = starts[0]
-        for i in xrange(1,len(starts)+1):
-            if i >= len(ends):
-                if (prev_end - prev_start) > self.params.min_nfr_len:
-                    self.nfrs.append(NFR(self.start + prev_start, self.start + prev_end, self))
-                return
-            if starts[i] < prev_end + self.params.max_nfr_gap:
-                prev_end = ends[i]
-            else:
-                if (prev_end - prev_start) > self.params.min_nfr_len:
-                    self.nfrs.append(NFR(self.start + prev_start, self.start + prev_end, self))
-                prev_start = starts[i]
-                prev_end = ends[i]
+            nucs.append(int(row[1]))
+        for j in xrange(1,len(nucs)):
+            left = nucs[j-1] + 73
+            right = nucs[j] - 72
+            if right <= left:
+                continue
+            candidate = NFR(left, right, self)
+            if candidate.min_upper < self.params.max_occ_upper and candidate.occ < self.params.max_occ:
+                self.nfrs.append(candidate)
     def process(self, params):
         """wrapper to carry out all methods needed to call nucleosomes and nfrs"""
         self.initialize(params)
         self.getOcc()
+        self.getIns()
+        self.getBias()
         self.findNFRs()
     def removeData(self):
         """remove data from chunk-- deletes all attributes"""
