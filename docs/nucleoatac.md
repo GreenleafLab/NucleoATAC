@@ -30,9 +30,9 @@ Outputs:
 
 * *output_basename.occ.bedgraph.gz*: Bedgraph track with nucleosome occupancy score
 
-* *output_basename.occ.lower_bound.bedgraph.gz*: Bedgraph track with lower bound estimate (90% confidence interval) for nucleosome occupancy score
+* *output_basename.occ.lower_bound.bedgraph.gz*: Bedgraph track with lower bound estimate for nucleosome occupancy score
 
-* *output_basename.occ.upper_bound.bedgraph.gz*: Bedgraph track with upper bound estimate (90% confidence interval) nucleosome occupancy score
+* *output_basename.occ.upper_bound.bedgraph.gz*: Bedgraph track with upper bound estimate nucleosome occupancy score
 
 * *output_basename.nuc_dist.txt* and *output_basename.nuc_dist.eps*: text file and EPS plot with estimate of fragment size at nucleosomes
     
@@ -40,6 +40,7 @@ Outputs:
 
 * *output_basename.occ_fit.txt* and *output_basename.occ_fit.eps*: text file and EPS plot of model for NFR and nucleosomal distributions
 
+* *output_basename.occpeaks.bed.gz*: Peaks from nucleosome occupancy track -- low resolution nucleosome calls.  Columns are (1) chrom (2) dyad position (0-based) (3) dyad position (1-based) (4) occupancy (5) occupancy lower bound (6) occupancy upper bound (7) # of reads in 121 bp window 
 
 
 ###vprocess
@@ -58,7 +59,7 @@ nucleotac nuc
 ```
 
 
-* *output_basename.nucpos.bed.gz*:  Nucleosome dyad calls text file.  Columns are: (1) chrom, (2) dyad position (0-based), (3) dyad position(1-based), (4) z-score, (5) nucleosome occupancy estimate (6) lower bound for nucleosome occupancy estimate (90% confidence interval) 7) upper bound for nucleosome occupancy estimate (90% conficence interval) (6) log likelihood ratio, (7) normalied nucleoatac signal value, (8) smoothed nucleoatac signal value, (9) cross-correlation signal value before normalization, (10) number of potentially nucleosome-sized fragments, (11) number of fragments smaller than nucleosome sized, (12) "fuzziness"  (measure of how wide signal peak is)
+* *output_basename.nucpos.bed.gz*:  Nucleosome dyad calls text file.  Columns are: (1) chrom, (2) dyad position (0-based), (3) dyad position(1-based), (4) z-score, (5) nucleosome occupancy estimate (6) lower bound for nucleosome occupancy estimate, (7) upper bound for nucleosome occupancy estimate (8) log likelihood ratio, (9) normalied nucleoatac signal value, (10) smoothed nucleoatac signal value, (11) cross-correlation signal value before normalization, (12) number of potentially nucleosome-sized fragments, (13) number of fragments smaller than nucleosome sized, (14) "fuzziness"  (measure of how wide signal peak is)
 
 * *output_basename.nucpos.redundant.bed.gz*: Includes nucleosome position calls that were within the minimum separation for non-redundant calls. 
 
