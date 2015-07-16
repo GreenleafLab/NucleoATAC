@@ -276,7 +276,7 @@ def add_signal_parser( subparsers):
     group2.add_argument('--cores', metavar = 'int', type = int,default=1,
                     help='Number of cores to use')
     group2.add_argument('--all', action='store_true', default=False,
-                    help = "output tab-delimited file with signal track around\
+                    help = "output csv file (gzipped) with signal track around\
                     all sites")
     group2.add_argument('--no_agg', action='store_true',default=False,
                     help = "Don't make a plot of aggregate or write up of aggregate")
