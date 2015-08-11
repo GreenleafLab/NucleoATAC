@@ -4,11 +4,11 @@ Not designed for compatability with Windows.
 
 Python modules required:
 
-* numpy
+* numpy (>=1.9.1)
 * scipy
 * matplotlib
-* cython
-* pysam
+* cython (>=0.22)
+* pysam (>= 0.8.1)
 
 
 ###Installation
