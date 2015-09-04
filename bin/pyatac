@@ -69,6 +69,13 @@ def main():
         from pyatac.get_sizes import get_sizes
         print ('---------Getting fragment sizes---------------------------------------')
         get_sizes(args)
+    elif call == "counts":
+        from pyatac.get_counts import get_counts
+        print ('---------Getting fragment counts---------------------------------------')
+        get_counts(args)
+
+
+
 
 
 def pyatac_parser():
@@ -98,7 +105,28 @@ def pyatac_parser():
 
     add_sizes_parser( subparsers)
 
+    add_counts_parser( subparsers)
+
     return argparser
+
+def add_counts_parser( subparsers):
+    """Add argument parsers for the sizes utility
+
+    """
+    parser = subparsers.add_parser("counts", help = "pyatac function-- compute fragment counts within windows")
+    group0 = parser.add_argument_group('Required', 'Necessary arguments')
+    group0.add_argument('--bam', metavar='bam_file', help = 'Aligned reads', required=True)
+    group0.add_argument('--bed', metavar='bed_file',required=True,
+                        help = 'Windows in which to compute counts')
+    group3 = parser.add_argument_group('Options', 'Optional settings')
+    group3.add_argument('--out', metavar='output_basename', help = "Basename for output")
+    group3.add_argument('--not_atac', action="store_false", dest = "atac", default = True, help = "Don't use atac offsets")
+    group4 = parser.add_argument_group('Fragment size bounds option', 'Upper and lower limits')
+    group4.add_argument('--lower',metavar="int", help = 'lower limit on insert \
+        size. Default is 0',default=0,type=int)
+    group4.add_argument('--upper', metavar="int",help="upper limit on insert \
+        size.  Default is 500",default=500,type=int)
+    return
 
 
 
@@ -108,7 +136,7 @@ def add_sizes_parser( subparsers):
     """
     parser = subparsers.add_parser("sizes", help = "pyatac function-- compute fragment size distribution")
     group0 = parser.add_argument_group('Required', 'Necessary arguments')
-    group0.add_argument('--bam', metavar='bam_file', help = 'Aligned reads')
+    group0.add_argument('--bam', metavar='bam_file', help = 'Aligned reads', required=True)
     group2 = parser.add_argument_group('Find only fragmentsizes for regions of genome')
     group2.add_argument('--bed', metavar='bed_file',
                         help = 'Only compute size distribution for fragment centered within regions in bed file')
@@ -270,7 +298,7 @@ def add_signal_parser( subparsers):
     group1.add_argument('--bed', metavar='bed_file' , help = 'Positions around which \
         to generate VPlot', required=True)
     group1.add_argument('--bg', metavar='bg_file', help = 'Accepts bedgraph file that is tabix indexed',required=True)
-    group1.add_argument('--sizes', metavar ='genome_sizes_file', help = 'File with chromosome names in 1st col, sizes in 2nd')
+    group1.add_argument('--sizes', metavar ='genome_sizes_file', required = True, help = 'File with chromosome names in 1st col, sizes in 2nd')
     group2 = parser.add_argument_group('General options', '')
     group2.add_argument('--out', metavar='basename', help = 'basename for output')
     group2.add_argument('--cores', metavar = 'int', type = int,default=1,
