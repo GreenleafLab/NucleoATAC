@@ -12,7 +12,7 @@ import numpy as np
 import traceback
 import itertools
 import pysam
-from pyatac.utils import shell_command,read_chrom_sizes_from_bam
+from pyatac.utils import shell_command,read_chrom_sizes_from_bam, read_chrom_sizes_from_fasta
 from pyatac.chunk import ChunkList
 from nucleoatac.NucleosomeCalling import NucChunk, NucParameters
 from pyatac.fragmentsizes import FragmentSizes
@@ -143,7 +143,10 @@ def run_nuc(args):
 
     """
     vmat = VMat.open(args.vmat)
-    chrs = read_chrom_sizes_from_bam(args.bam)
+    if args.fasta:
+        chrs = read_chrom_sizes_from_fasta(args.fasta)
+    else:
+        chrs = read_chrom_sizes_from_bam(args.bam)
     pwm = PWM.open(args.pwm)
     chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = vmat.mat.shape[1] + vmat.upper/2 + max(pwm.up,pwm.down) + args.nuc_sep/2, min_length = args.nuc_sep * 2)
     chunks.slop(chrs, up = args.nuc_sep/2, down = args.nuc_sep/2)

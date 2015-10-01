@@ -66,6 +66,7 @@ def make_bias_track(args, bases = 500000, splitsize = 1000):
         sets = chunks.split(items = bases/splitsize)
     else:
         chunks = ChunkList.read(args.bed)
+        chunks.checkChroms(params.chrs.keys())
         chunks.merge()
         sets = chunks.split(bases = bases)
     maxQueueSize = max(2,int(2 * bases / np.mean([chunk.length() for chunk in chunks])))

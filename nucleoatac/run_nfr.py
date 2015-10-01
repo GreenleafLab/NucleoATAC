@@ -12,7 +12,7 @@ import os
 import traceback
 import itertools
 import pysam
-from pyatac.utils import shell_command
+from pyatac.utils import shell_command, read_chrom_sizes_from_fasta, read_chrom_sizes_from_bam
 from pyatac.chunk import ChunkList
 from nucleoatac.NFRCalling import NFRParameters, NFRChunk
 
@@ -77,6 +77,12 @@ def run_nfr(args):
     if not args.out:
         args.out = '.'.join(os.path.basename(args.calls).split('.')[0:-3])
     chunks = ChunkList.read(args.bed)
+    if args.fasta is not None:
+        chrs_fasta = read_chrom_sizes_from_fasta(args.fasta)
+        chunks.checkChroms(chrs_fasta.keys())
+    if args.bam is not None:
+        chrs_bam = read_chrom_sizes_from_bam(args.bam)
+        chunks.checkChroms(chrs_bam, chrom_source = "BAM file") 
     chunks.merge()
     maxQueueSize = args.cores * 10 
     params = NFRParameters(args.occ_track, args.calls, args.ins_track, args.bam, max_occ = args.max_occ, max_occ_upper = args.max_occ_upper,

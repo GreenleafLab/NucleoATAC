@@ -18,8 +18,8 @@ from pyatac.chunkmat2d import FragmentMat2D, BiasMat2D
 from pyatac.bias import InsertionBiasTrack, PWM
 
 
-import warnings
-warnings.filterwarnings('error')
+#import warnings
+#warnings.filterwarnings('error')
 
 
 class SignalTrack(Track):

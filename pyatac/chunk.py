@@ -6,6 +6,7 @@ General tools for dealing with ATAC-Seq data using Python.
 """
 
 import gzip
+import warnings
 
 class Chunk():
     """Class that stores reads for a particular chunk of the genome"""
@@ -130,7 +131,7 @@ class ChunkList(list):
         return out
     @staticmethod
     def read(bedfile, weight_col=None, strand_col = None, name_col = None, chromDict = None,
-                min_offset = None, min_length = 1):
+                min_offset = None, min_length = 1, chrom_source = "FASTA file"):
         """Make a list of chunks from a tab-delimited bedfile"""
         if bedfile[-3:] == '.gz':
             infile = gzip.open(bedfile,"r")
@@ -140,6 +141,8 @@ class ChunkList(list):
         weight = None
         strand = "+"
         name = None
+        if chromDict is not None:
+            bad_chroms = []
         for line in infile:
             in_line = line.rstrip('\n').split("\t")
             if weight_col:
@@ -150,6 +153,10 @@ class ChunkList(list):
                 name = in_line[strand_col-1]
             start = int(in_line[1])
             end = int(in_line[2])
+            chrom = in_line[0]
+            if chromDict is not None and chrom not in chromDict.keys():
+                bad_chroms.append(chrom)
+                continue
             if min_offset:
                 if start < min_offset:
                     start = min_offset
@@ -159,6 +166,12 @@ class ChunkList(list):
                 out.append(Chunk(in_line[0],start, end,
                                    weight = weight, strand = strand, name = name))
         infile.close()
+        if chromDict is not None and len(bad_chroms)>0:
+            bad_chroms = set(bad_chroms)
+            warn_message = (str(len(bad_chroms)) + " chromosome names in bed file not included in " +
+                            chrom_source + ":\n" + "\n".join(bad_chroms) +  "\n " + 
+                            "These regions will be ignored in subsequent analysis")
+            warnings.warn(warn_message)
         return out
     @staticmethod
     def convertChromSizes(chromDict, splitsize = None, offset = 0):
@@ -193,7 +206,12 @@ class ChunkList(list):
             return out
         else:
             raise Exception("Need to provide items or bases argument!")
-
-
+    def checkChroms(self, chroms, chunklist_source = "bed file", chrom_source = "fasta file", warn = "Regions on these chromosomes will be ignored in analysis"):
+        bad_chroms = set([x.chrom for x in self if x.chrom not in chroms])
+        if len(bad_chroms)>0:
+            self[:] = [x for x in self if x.chrom in chroms]
+            warn_message = (str(len(bad_chroms)) + " chromosome names in " + chunklist_source + " not included in "
+                            + chrom_source + ":\n" + "\n".join(bad_chroms) +  "\n " + warn)
+            warnings.warn(warn_message)
 
 

@@ -14,7 +14,7 @@ import numpy as np
 import traceback
 import itertools
 import pysam
-from pyatac.utils import shell_command,read_chrom_sizes_from_bam
+from pyatac.utils import shell_command,read_chrom_sizes_from_bam, read_chrom_sizes_from_fasta
 from pyatac.chunk import ChunkList
 from nucleoatac.Occupancy import FragmentMixDistribution, OccupancyParameters, OccChunk
 from pyatac.fragmentsizes import FragmentSizes
@@ -78,7 +78,10 @@ def run_occ(args):
     """run occupancy calling
 
     """
-    chrs = read_chrom_sizes_from_bam(args.bam)
+    if args.fasta:
+        chrs = read_chrom_sizes_from_fasta(args.fasta)
+    else:
+        chrs = read_chrom_sizes_from_bam(args.bam)
     pwm = PWM.open(args.pwm)
     chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = args.flank + args.upper/2 + max(pwm.up,pwm.down) + args.nuc_sep/2)
     chunks.slop(chrs, up = args.nuc_sep/2, down = args.nuc_sep/2)
