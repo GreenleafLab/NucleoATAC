@@ -1,5 +1,5 @@
 """
-Script to get fragment size distribution
+Script to get read counts  distribution
 
 @author: Alicia Schep
 """
