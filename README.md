@@ -1,33 +1,17 @@
 # NucleoATAC
 Python package for calling nucleosomes using ATAC-Seq data.
+Also includes general scripts for working with paired-end ATAC-Seq data (or potentially other paired-end data).
 
-Versions:  
+Published Open Access at Genome Research: http://genome.cshlp.org/content/early/2015/08/27/gr.192294.115?top=1
 
-* version 0 represents code as used for initial characterization of NucleoATAC method 
-(e.g. as descriped in biorxiv manuscript).  This version may be a bit problematic in terms of the installation via pip or setup.py.  Adding main folder to $PYTHONPATH and bin folder to $PATH should allow scripts to be run.  Or 'pip install -e .' For this version checkout branch v0
-* version 0.1+ involved extensive code reorganization, changes to input options, 
-changes to way files are read or written, but no changes to algorithms.  Additional 
-functions (not necessarily tied to nucleosome calling but useful for working with atac-seq data,
- are included under pyatac command line function).  Still undergoing some testing!
+Please use GitHub Issues to bring up any errors that occur with software rather than emailing authors.
 
-Instruction for use can be found at http://greenleaflab.github.io/NucleoATAC/
+Note on Versions:  
 
-OS requirements:
-Tested only on Ubuntu OS.
+* version 0 represents code used for biorxiv manuscript
+* version 0.2.1 was used for Genome Research manuscript (See Supplemental Information as well)
 
-Python Dependencies:
-
-* python 2.7
-* scipy
-* numpy
-* pysam
-* matplotlib
-* cython
-
-Installation:
-
-Use pip -- `pip install .` inside NucleoATAC directory. 
-
+Documentation  can be found at http://nucleoatac.readthedocs.org/en/latest/
 
 
 
