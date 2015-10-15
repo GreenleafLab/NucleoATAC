@@ -2,7 +2,7 @@ from unittest import TestCase
 import numpy as np
 
 import nucleoatac.NucleosomeCalling as Nuc
-import nucleoatac.VMat as V
+import pyatac.VMat as V
 from pyatac.chunkmat2d import FragmentMat2D
 from pyatac.chunk import ChunkList
 
