@@ -8,8 +8,9 @@ class BedGraphFile:
         self.tbx = pysam.Tabixfile(bedgraph)
     def read(self, chrom, start, end, empty = np.nan):
         out = np.ones(end-start)*empty
-        for row in self.tbx.fetch(chrom,start,end, parser=pysam.asTuple()):
-            out[max(int(row[1])-start,0):min(int(row[2])-start,end-start)] = float(row[3])
+        if chrom in self.tbx.contigs:
+            for row in self.tbx.fetch(chrom,start,end, parser=pysam.asTuple()):
+                out[max(int(row[1])-start,0):min(int(row[2])-start,end-start)] = float(row[3])
         return out
     def close(self):
         self.tbx.close()
