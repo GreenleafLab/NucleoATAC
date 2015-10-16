@@ -86,8 +86,11 @@ class NFRChunk(Chunk):
         region = np.ones(self.length())
         tbx = pysam.TabixFile(self.params.calls)
         nucs = []
-        for row in tbx.fetch(self.chrom, self.start, self.end, parser = pysam.asTuple()):
-            nucs.append(int(row[1]))
+        try:
+            for row in tbx.fetch(self.chrom, self.start, self.end, parser = pysam.asTuple()):
+                nucs.append(int(row[1]))
+        except:
+            pass
         for j in xrange(1,len(nucs)):
             left = nucs[j-1] + 73
             right = nucs[j] - 72
