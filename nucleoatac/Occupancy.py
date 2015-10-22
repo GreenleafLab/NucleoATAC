@@ -15,6 +15,7 @@ from pyatac.chunk import Chunk
 from pyatac.utils import smooth, call_peaks, read_chrom_sizes_from_fasta
 from pyatac.chunkmat2d import FragmentMat2D, BiasMat2D
 from pyatac.bias import InsertionBiasTrack, PWM
+from scipy.special import gamma
 
 
 class FragmentMixDistribution:
@@ -25,24 +26,24 @@ class FragmentMixDistribution:
     def getFragmentSizes(self, bamfile, chunklist = None):
         self.fragmentsizes = FragmentSizes(self.lower, self.upper)
         self.fragmentsizes.calculateSizes(bamfile, chunks = chunklist)
-    def modelNFR(self, boundary = 115):
-        """Model NFR distribution with exponential distribution"""
-        b = np.where(self.fragmentsizes.get(self.lower,boundary) == max(self.fragmentsizes.get(self.lower,boundary)))[0][0]+10 + self.lower
-        def exp_pdf(x,*p): #defines the PDF
-            k=p[0]
-            a=p[1]
-            x=x-b
-            return a*k*np.exp(-k*x)
-        x = np.array(range(b,boundary))
-        p0 = (.1,1)
-        coeff, var_matrix = optimize.curve_fit(exp_pdf,x, self.fragmentsizes.get(b,boundary),
+    def modelNFR(self, boundaries = (45,115)):
+        """Model NFR distribution with gamma distribution"""
+        smoothed = smooth(self.fragmentsizes.get(),19, window = "gaussian",sd = 3, mode='same')
+        def gamma_pdf(x,*p): #defines the PDF
+            k = p[0]
+            theta =p[1]
+            a = p[2]
+            return a * x**(k-1) * np.exp(-x/theta) / (theta**k * gamma(k))
+        x = np.arange(boundaries[0],boundaries[1])        
+        p0 = (3, 25, 1)                        
+        coeff, var_matrix = optimize.curve_fit(gamma_pdf,x, self.fragmentsizes.get(boundaries[0],boundaries[1]),
                                                p0=p0)
-        nfr = np.concatenate((self.fragmentsizes.get(self.lower,boundary), exp_pdf(np.array(range(boundary,self.upper)),*coeff)))
+        nfr = np.concatenate((self.fragmentsizes.get(self.lower,boundaries[1]), gamma_pdf(np.array(range(boundaries[1],self.upper)),*coeff)))
         nfr[nfr==0] = min(nfr[nfr!=0])*0.01
         self.nfr_fit = FragmentSizes(self.lower,self.upper, vals = nfr)
-        nuc = np.concatenate((np.zeros(boundary-self.lower),
-                            self.fragmentsizes.get(boundary,self.upper) -
-                            self.nfr_fit.get(boundary,self.upper)))
+        nuc = np.concatenate((np.zeros(boundaries[1]-self.lower),
+                            self.fragmentsizes.get(boundaries[1],self.upper) -
+                            self.nfr_fit.get(boundaries[1],self.upper)))
         nuc[nuc<=0]=min(min(nfr)*0.1,min(nuc[nuc>0])*0.001)
         self.nuc_fit = FragmentSizes(self.lower, self.upper, vals = nuc)
     def plotFits(self,filename=None):
