@@ -17,16 +17,16 @@ The height of this signal track corresponds to how well the ATAC-seq fragmentati
 
 4) How can I interpret the \*.occ.bedgraph.gz track?  
 
-This track is not based on the V-plot pattern, but just the fragment size distribution at a locus.  It thus does not provide as high-resolution positioning information as the \*.nucleoatac_signal.bedgraph.gz track.  However, as the nucleosome occupancy estimate is based on the proportion of fragments estimated to be coming from the nucleosomal distribution, the height of peaks will not be correlated with accessibility within open chromatin regions.
+This track is not based on the V-plot pattern, but just the fragment size distribution at a locus.  It thus does not provide as high-resolution positioning information as the \*.nucleoatac_signal.bedgraph.gz track.  However, as the nucleosome occupancy estimate is based on the proportion of fragments estimated to be coming from the nucleosomal distribution, the height of peaks will not be confounded with accessibility like the nucleoatac_signal.  This track is thus much better for comparing nucleosome occupancy between loci or between samples.  
 
 When the signal-to-noise ratio in a sample is low, the nucleosome occupancy estimate will be systematically biased downwards.  This will especially be true outside of accessible regions of the genome, as most fragments in such region will be noise.  Thus to confidently determine that a region is nucleosome free, the occupancy track should be considered along with some measure of coverage, such as a track of the insertion density.  
 
 
 5) There are several outputs with positions of nucleosomes-- what are the differences?
 
-The \*.occpeaks.bed.gz file contains positions of nucleosomes estimated from the *.occ.bedgraph.gz track.  These will be *low resolution*.
+The \*.occpeaks.bed.gz file contains positions of nucleosomes estimated from the \*.occ.bedgraph.gz track.  These will be *low resolution*.
 
-The \*.nucpos.bed.gz file contains positions of nucleosomes estimated from the *.nucleoatac_signal.bedgraph.gz track.  These will be higher resolution, and should enable observation of underlying sequence preferences of nucleosomes.
+The \*.nucpos.bed.gz file contains positions of nucleosomes estimated from the \*.nucleoatac_signal.bedgraph.gz track.  These will be higher resolution, and should enable observation of underlying sequence preferences of nucleosomes.
 
 The \*.nucmap_combined.bed.gz file is a merge of the other two, with the positions from the nucleoatac_signal favored when there is an overlap.  Generally many more positions will be called from the occupancy track, so this combined track is a way to get a more comprehensive set of positions while still having the higher resolution when possible.
 
