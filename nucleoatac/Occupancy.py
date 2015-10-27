@@ -26,19 +26,37 @@ class FragmentMixDistribution:
     def getFragmentSizes(self, bamfile, chunklist = None):
         self.fragmentsizes = FragmentSizes(self.lower, self.upper)
         self.fragmentsizes.calculateSizes(bamfile, chunks = chunklist)
-    def modelNFR(self, boundaries = (45,115)):
+    def modelNFR(self, boundaries = (35,115)):
         """Model NFR distribution with gamma distribution"""
-        smoothed = smooth(self.fragmentsizes.get(),19, window = "gaussian",sd = 3, mode='same')
-        def gamma_pdf(x,*p): #defines the PDF
-            k = p[0]
-            theta =p[1]
-            a = p[2]
-            return a * x**(k-1) * np.exp(-x/theta) / (theta**k * gamma(k))
+        b = np.where(self.fragmentsizes.get(self.lower,boundaries[1]) == max(self.fragmentsizes.get(self.lower,boundaries[1])))[0][0] + self.lower
+        boundaries = (min(boundaries[0],b), boundaries[1])
         x = np.arange(boundaries[0],boundaries[1])        
-        p0 = (3, 25, 1)                        
-        coeff, var_matrix = optimize.curve_fit(gamma_pdf,x, self.fragmentsizes.get(boundaries[0],boundaries[1]),
-                                               p0=p0)
-        nfr = np.concatenate((self.fragmentsizes.get(self.lower,boundaries[1]), gamma_pdf(np.array(range(boundaries[1],self.upper)),*coeff)))
+        y = self.fragmentsizes.get(boundaries[0],boundaries[1]) 
+        def gamma_fit(X,o,p):
+            k = p[0]
+            theta = p[1]
+            a = p[2]
+            x_mod = X-o
+            res = np.zeros(len(x_mod))
+            if k>=1:
+                nz = x_mod >= 0
+            else:
+                nz = x_mod > 0
+            res[nz] = a * x_mod[nz]**(k-1) * np.exp(-x_mod[nz]/theta) / (theta **k * gamma(k))
+            return res 
+        res_score = np.ones(boundaries[0]+1)*np.float('inf')
+        res_param = [0 for i in range(boundaries[0]+1)]
+        pranges = ((0.01,10),(0.01,150),(0.01,1))
+        for i in range(15,boundaries[0]+1):
+            f = lambda p: np.sum((gamma_fit(x,i,p) - y)**2)
+            tmpres = optimize.brute(f, pranges,  full_output=True,
+                              finish=optimize.fmin)
+            res_score[i] = tmpres[1]
+            res_param[i] = tmpres[0]
+        whichres = np.argmin(res_score)
+        res = res_param[whichres]
+        self.nfr_fit0 = FragmentSizes(self.lower,self.upper, vals = gamma_fit(np.arange(self.lower,self.upper),whichres,res_param[whichres]))
+        nfr = np.concatenate((self.fragmentsizes.get(self.lower,boundaries[1]), self.nfr_fit0.get(boundaries[1],self.upper))) 
         nfr[nfr==0] = min(nfr[nfr!=0])*0.01
         self.nfr_fit = FragmentSizes(self.lower,self.upper, vals = nfr)
         nuc = np.concatenate((np.zeros(boundaries[1]-self.lower),
@@ -51,9 +69,9 @@ class FragmentMixDistribution:
         fig = plt.figure()
         plt.plot(range(self.lower,self.upper),self.fragmentsizes.get(),
                  label = "Observed")
-        #plt.plot(range(self.lower,self.upper),self.smoothed.get(), label = "Smoothed")
-        plt.plot(range(self.lower,self.upper),self.nuc_fit.get(), label = "Nucleosome Fit")
-        plt.plot(range(self.lower,self.upper),self.nfr_fit.get(), label = "NFR Fit")
+        plt.plot(range(self.lower,self.upper),self.nfr_fit0.get(), label = "NFR Fit")
+        plt.plot(range(self.lower,self.upper),self.nuc_fit.get(), label = "Nucleosome Model")
+        plt.plot(range(self.lower,self.upper),self.nfr_fit.get(), label = "NFR Model")
         plt.legend()
         plt.xlabel("Fragment size")
         plt.ylabel("Relative Frequency")
