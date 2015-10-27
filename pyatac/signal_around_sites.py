@@ -40,11 +40,11 @@ def _signalHelper(arg):
                 chunk.slop(chromDict = params.chrs, up = params.up, down = params.down)
             sig = bg.read(chunk.chrom, chunk.start, chunk.end)
             if params.up!=0 and params.down!=0 and len(sig) != (params.up + params.down + 1):
-                if chunk.start == 0 :
-                    mat = np.hstack(np.zeros(params.up + params.down + 1 - len(sig)),
-                                    sig)
+                if chunk.start == 0:
+                    sig = np.hstack((np.zeros(params.up + params.down + 1 - len(sig)),
+                                    sig))
                 else:
-                    mat = np.hstack(sig,np.zeros(params.up + params.down + 1 - len(sig)))
+                    sig = np.hstack((sig,np.zeros(params.up + params.down + 1 - len(sig))))
             if chunk.strand == "-":
                 sig = sig[::-1]
             if params.exp:
