@@ -76,10 +76,12 @@ def run_nfr(args):
         raise Exception("Must supply either bam file or insertion track")
     if not args.out:
         args.out = '.'.join(os.path.basename(args.calls).split('.')[0:-3])
-    chunks = ChunkList.read(args.bed)
-    if args.fasta is not None:
+   if args.fasta is not None:
         chrs_fasta = read_chrom_sizes_from_fasta(args.fasta)
-        chunks.checkChroms(chrs_fasta.keys())
+        pwm = PWM.open(args.pwm)
+        chunks = ChunkList.read(args.bed, chromDict = chrs_fasta, min_offset = max(pwm.up, pwm.down))
+    else:
+        chunks = ChunkList.read(args.bed)
     if args.bam is not None:
         chrs_bam = read_chrom_sizes_from_bam(args.bam)
         chunks.checkChroms(chrs_bam, chrom_source = "BAM file") 
