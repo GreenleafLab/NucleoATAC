@@ -17,4 +17,6 @@
 #site
 /site
 
+#results of example run
+example/test_example*
 
