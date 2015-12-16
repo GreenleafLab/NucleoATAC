@@ -15,6 +15,7 @@ import pysam
 from pyatac.utils import shell_command, read_chrom_sizes_from_fasta, read_chrom_sizes_from_bam
 from pyatac.chunk import ChunkList
 from nucleoatac.NFRCalling import NFRParameters, NFRChunk
+from pyatac.bias import PWM
 
 def _nfrHelper(arg):
     """function to get occupancy for a set of bed regions
@@ -76,7 +77,7 @@ def run_nfr(args):
         raise Exception("Must supply either bam file or insertion track")
     if not args.out:
         args.out = '.'.join(os.path.basename(args.calls).split('.')[0:-3])
-   if args.fasta is not None:
+    if args.fasta is not None:
         chrs_fasta = read_chrom_sizes_from_fasta(args.fasta)
         pwm = PWM.open(args.pwm)
         chunks = ChunkList.read(args.bed, chromDict = chrs_fasta, min_offset = max(pwm.up, pwm.down))
