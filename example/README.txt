@@ -6,7 +6,7 @@
 
 #To test out nucleoatac installation, try:
 
-nucleoatac run --bed example.bed --bam example.bam --fasta sacCer3.fa --out test_example 
+nucleoatac run --bed example.bed --bam example.bam --fasta sacCer3.fa --out test_results/test 
 
 
 
