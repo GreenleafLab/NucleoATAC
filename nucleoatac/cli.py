@@ -4,7 +4,7 @@ import argparse
 import nucleoatac.Magic
 from nucleoatac import __version__
 
-def main(args):
+def nucleoatac_main(args):
     """The Main function for calling nucleoatac
 
     """
