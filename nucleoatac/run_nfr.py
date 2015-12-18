@@ -26,9 +26,9 @@ def _nfrHelper(arg):
         nfr = NFRChunk(chunk)
         nfr.process(params)
         if params.ins_track is None:
-            out = (nfr.nfrs, nfr.ins)
+            out = (nfr.nfrs, nfr.cov, nfr.ins)
         else:
-            out = nfr.nfrs
+            out = (nfr.nfrs, nfr.cov)
         nfr.removeData()
     except Exception as e:
         print('Caught exception when processing:\n'+  chunk.asBed()+"\n")
@@ -68,6 +68,21 @@ def _writeIns(track_queue, out):
     return True
 
 
+def _writeCov(track_queue, out):
+    out_handle = open(out + '.nfr_signal.bedgraph','a')
+    try:
+        for track in iter(track_queue.get, 'STOP'):
+            track.write_track(out_handle)
+            track_queue.task_done()
+    except Exception, e:
+        print('Caught exception when writing insertion track\n')
+        traceback.print_exc()
+        print()
+        raise e
+    out_handle.close()
+    return True
+
+
 
 def run_nfr(args):
     """run nfr calling
@@ -89,7 +104,7 @@ def run_nfr(args):
     chunks.merge()
     maxQueueSize = args.cores * 10 
     params = NFRParameters(args.occ_track, args.calls, args.ins_track, args.bam, max_occ = args.max_occ, max_occ_upper = args.max_occ_upper,
-                            fasta = args.fasta, pwm = args.pwm)
+                            fasta = args.fasta, pwm = args.pwm, upper = args.upper, flank = args.flank)
     sets = chunks.split(items = args.cores * 5)
     pool1 = mp.Pool(processes = max(1,args.cores-1))
     nfr_handle = open(args.out + '.nfrpos.bed','w')
@@ -97,6 +112,11 @@ def run_nfr(args):
     nfr_queue = mp.JoinableQueue()
     nfr_process = mp.Process(target = _writeNFR, args=(nfr_queue, args.out))
     nfr_process.start()
+    cov_handle = open(args.out + '.nfr_signal.bed','w')
+    cov_handle.close()
+    cov_queue = mp.JoinableQueue()
+    cov_process = mp.Process(target = _writeCov, args=(cov_queue, args.out))
+    cov_process.start()
     if params.ins_track is None:
         ins_handle = open(args.out + '.ins.bedgraph','w')
         ins_handle.close()
@@ -108,19 +128,26 @@ def run_nfr(args):
         for result in tmp:
             if params.ins_track is None:
                 nfr_queue.put(result[0])
-                ins_queue.put(result[1])
+                cov_queue.put(result[1])
+                ins_queue.put(result[2])
             else:
-                nfr_queue.put(result)
+                nfr_queue.put(result[0])
+                cov_queue.put(result[1])
     pool1.close()
     pool1.join()
     nfr_queue.put('STOP')
     nfr_process.join()
+    cov_queue.put('STOP')
+    cov_process.join()
     if params.ins_track is None:
         ins_queue.put('STOP')
         ins_process.join()
     pysam.tabix_compress(args.out + '.nfrpos.bed', args.out + '.nfrpos.bed.gz',force = True)
     shell_command('rm ' + args.out + '.nfrpos.bed')
     pysam.tabix_index(args.out + '.nfrpos.bed.gz', preset = "bed", force = True)
+    pysam.tabix_compress(args.out + '.nfr_signal.bedgraph', args.out + '.nfr_signal.bedgraph.gz', force = True)
+    shell_command('rm ' + args.out + '.nfr_signal.bedgraph')
+    pysam.tabix_index(args.out + '.nfr_signal.bedgraph.gz', preset = "bed", force = True)
     if params.ins_track is None:
         pysam.tabix_compress(args.out + '.ins.bedgraph', args.out + '.ins.bedgraph.gz', force = True)
         shell_command('rm ' + args.out + '.ins.bedgraph')

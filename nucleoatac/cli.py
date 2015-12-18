@@ -164,10 +164,14 @@ def add_nfr_parser( subparsers):
     group2.add_argument('--cores', metavar = 'num_cores',default=1,
                     help='Number of cores to use',type=int)
     group5 = parser.add_argument_group("NFR determination parameters")
-    group5.add_argument('--max_occ', metavar= 'float', default = 0.1,
-        help = 'Maximum mean occupancy for NFR. Default is 0.1', type = float)
-    group5.add_argument('--max_occ_upper', metavar= 'float', default = 0.25,
-        help = 'Maximum for minimum of  upper bound occupancy in NFR. Default is 0.25', type = float)
+    group5.add_argument('--max_occ', metavar= 'float', default = 0.25,
+        help = 'Maximum mean occupancy for NFR. Default is 0.25', type = float)
+    group5.add_argument('--max_occ_upper', metavar= 'float', default = 0.5,
+        help = 'Maximum for minimum of  upper bound occupancy in NFR. Default is 0.5', type = float)
+    group5.add_argument('--flank',metavar="int",default=60,
+        help="Bases on each side of given position to consider for NFR coverage calculation. Default is 60.",type=int)
+    group5.add_argument('--upper',metavar="int",default=251,
+        help="upper limit in insert size. default is 251",type=int)
  
 
 def add_vprocess_parser( subparsers):
