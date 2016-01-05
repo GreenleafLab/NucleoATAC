@@ -112,7 +112,7 @@ def run_nfr(args):
     nfr_queue = mp.JoinableQueue()
     nfr_process = mp.Process(target = _writeNFR, args=(nfr_queue, args.out))
     nfr_process.start()
-    cov_handle = open(args.out + '.nfr_signal.bed','w')
+    cov_handle = open(args.out + '.nfr_signal.bedgraph','w')
     cov_handle.close()
     cov_queue = mp.JoinableQueue()
     cov_process = mp.Process(target = _writeCov, args=(cov_queue, args.out))
