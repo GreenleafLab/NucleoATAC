@@ -150,11 +150,11 @@ def add_nfr_parser( subparsers):
                        help = "bgzip compressed, tabix-indexed bedgraph file with occcupancy track.")
     group1.add_argument('--calls', metavar = 'nucpos_file', required = True,
                        help = "bed file with nucleosome center calls")
-    group6 = parser.add_argument_group("Insertion track options","Either input insertion track or bamfile")
+    group1.add_argument('--bam', metavar='bam_file', required = True,
+                    help = 'Sorted (and indexed) BAM file')
+    group6 = parser.add_argument_group("Insertion track options","Either input insertion track or one will be created")
     group6.add_argument('--ins_track', metavar = 'ins_file', 
                         help = "bgzip compressed, tabix-indexed bedgraph file with insertion track. will be generated if not included")
-    group6.add_argument('--bam', metavar='bam_file',
-                    help = 'Sorted (and indexed) BAM file')
     group4 = parser.add_argument_group("Bias calculation information","Highly recommended. If fasta is not provided, will not calculate bias")
     group4.add_argument('--fasta', metavar = 'genome_seq',
                     help = 'Indexed fasta file')

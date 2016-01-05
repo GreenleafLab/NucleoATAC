@@ -24,7 +24,10 @@ class NFR(Chunk):
         self.occ = np.mean(nfrtrack.occ.get(left,right))
         self.min_upper = np.min(nfrtrack.occ_upper.get(left,right))
         self.ins_density = np.mean(nfrtrack.ins.get(left,right))
-        self.bias_density = np.mean(nfrtrack.bias.get(left, right, log = False))
+        if nfrtrack.params.fasta is None:
+            self.bias_density = "NA" 
+        else:
+            self.bias_density = np.mean(nfrtrack.bias.get(left, right, log = False))
         self.nfr_cov = np.mean(nfrtrack.cov.get(left,right))
     def asBed(self):
         out = "\t".join(map(str,[self.chrom, self.start, self.end, self.occ, self.min_upper, self.ins_density, self.bias_density, self.nfr_cov]))
