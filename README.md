@@ -13,5 +13,5 @@ Note on Versions:
 
 Documentation  can be found at http://nucleoatac.readthedocs.org/en/latest/
 
-
+If you want to easily read in NucleoATAC outputs into R for further processing or exploration, check out [NucleoATACR](https://github.com/GreenleafLab/NucleoATACR/)
 
