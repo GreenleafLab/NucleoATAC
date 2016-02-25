@@ -126,6 +126,8 @@ class NFRChunk(Chunk):
                     nucs.append(int(row[1]))
         nucs = np.array(nucs)
         candidates = call_peaks(self.cov.get(), sep = self.params.flank, min_signal = 1)
+        if len(candidates) == 0 or max(self.occ.vals[candidates]) < self.params.max_occ:
+            return 
         candidates = candidates[np.where(self.occ.vals[candidates] < self.params.max_occ)] 
         #candidates = candidates[np.where(self.occ_upper.vals[candidates] < self.params.max_occ_upper)] 
         candidates += self.start
