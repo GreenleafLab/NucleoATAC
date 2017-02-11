@@ -3,8 +3,8 @@ import pyatac.seq as seq
 import numpy as np
 cimport numpy as np
 cimport cython
-from pysam.calignmentfile cimport AlignmentFile, AlignedSegment
-from pysam.cfaidx cimport FastaFile
+from pysam.libcalignmentfile cimport AlignmentFile, AlignedSegment
+from pysam.libcfaidx cimport FastaFile
 
 DTYPE = np.float
 ctypedef np.float_t DTYPE_t
