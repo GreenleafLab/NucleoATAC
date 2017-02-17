@@ -6,8 +6,8 @@ Script to make nucleosome occupancy track!
 
 ##### IMPORT MODULES #####
 # import necessary python modules
-import matplotlib as mpl
-mpl.use('PS')
+#import matplotlib as mpl
+#mpl.use('PS')
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 import numpy as np

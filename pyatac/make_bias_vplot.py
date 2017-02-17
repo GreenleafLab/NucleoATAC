@@ -9,8 +9,8 @@ Script to make V-plot
 # import necessary python modules
 import numpy as np
 import os
-import matplotlib as mpl
-mpl.use('PS')
+#import matplotlib as mpl
+#mpl.use('PS')
 from multiprocessing import Pool
 import traceback
 import itertools

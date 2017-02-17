@@ -7,8 +7,8 @@ Script to get fragment size distribution
 ##### IMPORT MODULES #####
 # import necessary for python
 import os
-import matplotlib as mpl
-mpl.use('PS')
+#import matplotlib as mpl
+#mpl.use('PS')
 import matplotlib.pyplot as plt
 from pyatac.fragmentsizes import FragmentSizes
 from pyatac.chunk import ChunkList

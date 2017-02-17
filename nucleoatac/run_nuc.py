@@ -5,8 +5,8 @@ Script to call nucleosome positions-- track making, nucleosome calling, and nfr 
 """
 ##### IMPORT MODULES #####
 # import necessary python modules
-import matplotlib as mpl
-mpl.use('PS')
+#import matplotlib as mpl
+#mpl.use('PS')
 import multiprocessing as mp
 import numpy as np
 import traceback

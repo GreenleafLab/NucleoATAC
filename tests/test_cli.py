@@ -41,7 +41,7 @@ class PyATACTestCase(TestCase):
     def setUp(self):
         self.parser = pyatac_parser()
     def test_sizes(self):
-        cmd = "pyatac sizes --bam example/example.bam" 
+        cmd = "pyatac sizes --bam example/example.bam --out example/test_results/test_sizes" 
         args = self.parser.parse_args(cmd.split()[1:])
         pyatac_main(args)
  

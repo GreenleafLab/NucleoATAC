@@ -7,8 +7,8 @@ Use insert distribution at nuclesomal regions in peaks for normalization
 
 ##### IMPORT MODULES #####
 # import necessary for python
-import matplotlib as mpl
-mpl.use('PS')
+#import matplotlib as mpl
+#mpl.use('PS')
 import pyatac.VMat as V
 from pyatac.fragmentsizes import FragmentSizes
 

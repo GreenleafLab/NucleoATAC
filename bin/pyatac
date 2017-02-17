@@ -15,6 +15,8 @@ of the MIT License (see the file COPYING included with the distribution).
 ###-----------Import modules---------------####
 
 import sys
+import matplotlib as mpl
+mpl.use('PS')
 from pyatac import __version__
 import time
 from pyatac.cli import pyatac_parser, pyatac_main

@@ -8,8 +8,8 @@ Function to make plot of aggregate signal around sites.
 # import needed python modules
 import os
 import numpy as np
-import matplotlib as mpl
-mpl.use('Agg')
+#import matplotlib as mpl
+#mpl.use('Agg')
 import matplotlib.pyplot as plt
 from multiprocessing import Pool
 import itertools
