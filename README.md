@@ -1,8 +1,8 @@
 # NucleoATAC
-Python package for calling nucleosomes using ATAC-Seq data.
-Also includes general scripts for working with paired-end ATAC-Seq data (or potentially other paired-end data).
+Python package for calling nucleosomes using ATAC-seq data.
+Also includes general scripts for working with paired-end ATAC-seq data (or potentially other paired-end data).
 
-Published Open Access at Genome Research: http://genome.cshlp.org/content/early/2015/08/27/gr.192294.115?top=1
+Please cite our paper at [Genome Research](http://genome.cshlp.org/content/25/11/1757) if you use this tool in your research.
 
 Please use GitHub Issues to bring up any errors that occur with software rather than emailing authors.
 
