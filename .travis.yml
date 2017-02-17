@@ -3,6 +3,8 @@ python:
     - "2.7"
     - "2.7.3"
 install:
+    - pip install --upgrade pip setuptools wheel
+    - pip install --only-binary=numpy,scipy numpy scipy
     - pip install .
 script: python tests.py
 
