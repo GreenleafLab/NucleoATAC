@@ -15,3 +15,4 @@ Documentation  can be found at http://nucleoatac.readthedocs.org/en/latest/
 
 If you want to easily read in NucleoATAC outputs into R for further processing or exploration, check out [NucleoATACR](https://github.com/GreenleafLab/NucleoATACR/)
 
+Currently NucleoATAC only supports Python 2.7 (No Python 3). If anyone is interested in adding Python 3 support, pull requests welcome :smile:
