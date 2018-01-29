@@ -14,7 +14,7 @@ NucleoATAC is a python package for calling nucleosome positions and occupancy us
 * Bed file with regions to perform analysis.  Generally will be broad open chromatin regions.
 
 ###Installation
-Recommended to install NucleoATAC within virtual environment to minimize chance of issues with older versions of python package dependencies.
+Recommended to install NucleoATAC within virtual environment to minimize chance of issues with older versions of python package dependencies. NucleoATAC requries Python 2.7 (Does not currently support Python 3).
 
 * Make and activate python [virtual environment](https://virtualenv.pypa.io/en/latest/)
 * Use pip to install python dependencies: `pip install cython numpy scipy matplotlib pysam`
