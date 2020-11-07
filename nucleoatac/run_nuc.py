@@ -148,8 +148,8 @@ def run_nuc(args):
     else:
         chrs = read_chrom_sizes_from_bam(args.bam)
     pwm = PWM.open(args.pwm)
-    chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = vmat.mat.shape[1] + vmat.upper/2 + max(pwm.up,pwm.down) + args.nuc_sep/2, min_length = args.nuc_sep * 2)
-    chunks.slop(chrs, up = args.nuc_sep/2, down = args.nuc_sep/2)
+    chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = vmat.mat.shape[1] + vmat.upper//2 + max(pwm.up,pwm.down) + args.nuc_sep//2, min_length = args.nuc_sep * 2)
+    chunks.slop(chrs, up = args.nuc_sep//2, down = args.nuc_sep//2)
     chunks.merge()
     maxQueueSize = args.cores*10
     if args.sizes is not None:

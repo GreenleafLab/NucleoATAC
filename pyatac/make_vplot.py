@@ -74,13 +74,13 @@ def make_vplot(args):
     ##Turn matrix into VMat object
     vmat=V.VMat(result,args.lower,args.upper)
     if not args.no_plot:
-        vmat.plot(filename=args.out+".Vplot.eps")
+        vmat.plot(filename=args.out+".Vplot.pdf")
     if args.plot_extra:
         ##get insertion profile represented by vplot
         vmat.converto1d()
-        vmat.plot_1d(filename=args.out+'.InsertionProfile.eps')
+        vmat.plot_1d(filename=args.out+'.InsertionProfile.pdf')
         #get insert size dstribution represented by vplot
-        vmat.plot_insertsize(filename= args.out + ".InsertSizes.eps")
+        vmat.plot_insertsize(filename= args.out + ".InsertSizes.pdf")
     ##save
     vmat.save(args.out+".VMat")
 

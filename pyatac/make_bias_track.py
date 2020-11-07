@@ -61,14 +61,16 @@ def make_bias_track(args, bases = 500000, splitsize = 1000):
         else:
             args.out = '.'.join(os.path.basename(args.fasta).split('.')[0:-1])
     params = _BiasParams(args.fasta, args.pwm)
+
     if args.bed is None:
         chunks = ChunkList.convertChromSizes(params.chrs, splitsize = splitsize)
-        sets = chunks.split(items = bases/splitsize)
+        sets = chunks.split(items = bases//splitsize)
     else:
         chunks = ChunkList.read(args.bed)
         chunks.checkChroms(list(params.chrs.keys()))
         chunks.merge()
         sets = chunks.split(bases = bases)
+
     maxQueueSize = max(2,int(2 * bases / np.mean([chunk.length() for chunk in chunks])))
     pool = mp.Pool(processes = max(1,args.cores-1))
     out_handle = open(args.out + '.Scores.bedgraph','w')

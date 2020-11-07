@@ -57,7 +57,7 @@ def run_diff(args, bases = 500000):
     """
     chrs = read_chrom_sizes_from_bam(args.bam)
     pwm = PWM.open(args.pwm)
-    chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = args.flank + args.upper/2 + max(pwm.up,pwm.down))
+    chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = args.flank + args.upper//2 + max(pwm.up,pwm.down))
     chunks.merge()
     maxQueueSize = max(2,int(100 * bases / np.mean([chunk.length() for chunk in chunks])))
     #get fragmentsizes

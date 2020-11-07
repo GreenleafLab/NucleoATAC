@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 from pyatac.bedgraph import BedGraphFile
 from pyatac.chunk import Chunk
 from pyatac.utils import smooth
-#import pyximport; pyximport.install(setup_args={"include_dirs":np.get_include()})
 from pyatac.fragments import getInsertions, getStrandedInsertions
 from pyatac.seq import get_sequence, seq_to_mat, complement
 
@@ -105,8 +104,8 @@ class Track(Chunk):
         self.vals = smooth(self.vals, window_len, window = window, sd = sd,
                            mode = mode, norm = norm)
         if mode == 'valid':
-            self.start = self.start + window_len/2
-            self.end = self.end - window_len/2
+            self.start = self.start + window_len//2
+            self.end = self.end - window_len//2
     def get(self, start = None, end = None, pos = None):
         """Obtain value of track at particular interval or position"""
         if pos:
@@ -208,10 +207,9 @@ class CoverageTrack(Track):
         Track.__init__(self, chrom, start, end, "coverage")
     def calculateCoverage(self, mat, lower, upper, window_len):
         """Compute coverage of fragment centers using flat window"""
-        offset=self.start-mat.start-(window_len/2)
+        offset=self.start-mat.start-(window_len//2)
         if offset<0:
-            raise Exception("Insufficient flanking region on \
-                    mat to calculate coverage with desired window")
+            raise Exception("Insufficient flanking region on mat to calculate coverage with desired window")
         lower=lower-mat.lower
         upper=upper-mat.lower
         if offset!=0:
@@ -224,8 +222,7 @@ class CoverageTrack(Track):
         """Compute coverage of fragment centers using gaussia window"""
         offset=self.start-mat.start-(window_len/2)
         if offset<0:
-            raise Exception("Insufficient flanking region on \
-                    mat to calculate coverage with desired window")
+            raise Exception("Insufficient flanking region on mat to calculate coverage with desired window")
         lower=lower-mat.lower
         upper=upper-mat.lower
         if offset!=0:

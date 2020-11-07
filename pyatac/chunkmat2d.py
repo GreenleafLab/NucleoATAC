@@ -18,6 +18,7 @@ class ChunkMat2D:
         self.ncol = end - start
         self.nrow = upper - lower
         self.mat = np.zeros((self.nrow, self.ncol))
+
     def get(self, lower = None, upper = None, start = None, end = None, flip = False):
         """get a subset (or all) of the matrix stored by ChunkMat2D object based on
         chromosal position and/or insert size"""
@@ -52,6 +53,7 @@ class ChunkMat2D:
                     else:
                         new[j,:] = self.mat[j,(x1-1):(x2)][::-1][1:]
                 return new
+
     def assign(self, mat):
         """assign a matrix to object"""
         if mat.shape != self.mat.shape:
@@ -73,15 +75,16 @@ class ChunkMat2D:
         new= ChunkMat2D(elements[0],elements[1],elements[2],elements[3])
         new.assign(mat)
         return new
+
     def getIns(self):
         """Collape matrix into insertions.  Will reduce span on chromosome"""
         pattern = np.zeros((self.upper-self.lower,self.upper + (self.upper-1)%2))
-        mid = self.upper/2
+        mid = self.upper//2
         for i in range(self.lower,self.upper):
-            pattern[i-self.lower,mid+(i-1)/2]=1
-            pattern[i-self.lower,mid-(i/2)]=1
+            pattern[i-self.lower, mid+(i-1)//2]=1
+            pattern[i-self.lower, mid-(i//2)]=1
         ins = signal.correlate2d(self.mat,pattern,mode="valid")[0]
-        insertion_track = InsertionTrack(self.chrom,self.start + pattern.shape[1]/2, self.end - (pattern.shape[1]/2))
+        insertion_track = InsertionTrack(self.chrom,self.start + pattern.shape[1]//2, self.end - (pattern.shape[1]//2))
         insertion_track.assign_track(ins)
         return insertion_track
     def plot(self, filename = None, title = None, lower = None,
@@ -119,7 +122,7 @@ class FragmentMat2D(ChunkMat2D):
     def updateMat(self, fragment):
         row = fragment.insert - self.lower
         if self.mode == "centers":
-            col = (fragment.insert-1)/2 + fragment.left - self.start
+            col = (fragment.insert-1)//2 + fragment.left - self.start
             if col>=0 and col<self.ncol and row<self.nrow and row>=0:
                 self.mat[row, col] += 1
         else:
@@ -139,20 +142,24 @@ class BiasMat2D(ChunkMat2D):
     def __init__(self, chrom, start, end, lower, upper):
         ChunkMat2D.__init__(self,chrom, start, end, lower, upper)
         self.mat = np.ones(self.mat.shape)
+
     def makeBiasMat(self, bias_track):
         """Make 2D matrix representing sequence bias preferences"""
-        offset = self.upper/2
+        offset = self.upper//2
         bias = bias_track.get(self.start-offset,self.end+offset)
         if not bias_track.log:
             nonzero = np.where(bias !=0)[0]
             bias = np.log(bias + min(bias[nonzero]))
+        
         pattern = np.zeros((self.upper-self.lower,self.upper + (self.upper-1)%2))
-        mid = self.upper/2
+        mid = self.upper//2
         for i in range(self.lower,self.upper):
-            pattern[i-self.lower,mid+(i-1)/2]=1
-            pattern[i-self.lower,mid-(i/2)]=1
+            pattern[i-self.lower,mid+(i-1)//2]=1
+            pattern[i-self.lower,mid-(i//2)]=1
+
         for i in range(self.upper-self.lower):
             self.mat[i]=np.exp(np.convolve(bias,pattern[i,:],mode='valid'))
+
     def normByInsertDist(self, insertsizes):
         inserts = insertsizes.get(self.lower,self.upper)
         self.mat = self.mat * np.reshape(np.tile(inserts,self.mat.shape[1]),self.mat.shape,order="F")

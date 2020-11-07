@@ -74,7 +74,7 @@ def get_nucleotide(args):
     for i in tmp:
         result += i[0]
         n += i[1]
-    result = result / n
+    result = result // n
     if args.norm:
         normfreqs = seq.getNucFreqs(params.fasta, params.nucleotides)
         result = result / np.reshape(np.repeat(normfreqs,result.shape[1]),result.shape)

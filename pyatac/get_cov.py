@@ -22,7 +22,7 @@ def _covHelper(arg):
     """Computes coverage track for a particular set of bed regions"""
     (chunk, args) = arg
     try:
-        offset = args.window / 2
+        offset = args.window // 2
         mat = FragmentMat2D(chunk.chrom,chunk.start - offset, chunk.end + offset, args.lower, args.upper, args.atac) 
         mat.makeFragmentMat(args.bam)
         cov = CoverageTrack(chunk.chrom, chunk.start, chunk.end)
@@ -62,7 +62,7 @@ def get_cov(args, bases = 50000, splitsize = 1000):
     if args.bed is None:
         chrs = read_chrom_sizes_from_bam(args.bam)
         chunks = ChunkList.convertChromSizes(chrs, splitsize = splitsize)
-        sets = chunks.split(items = bases/splitsize)
+        sets = chunks.split(items=bases//splitsize)
     else:
         chunks = ChunkList.read(args.bed)
         chunks.merge()

@@ -108,12 +108,12 @@ def get_signal(args):
         result = sum(tmp)
     if not args.no_agg:
         if args.norm:
-            result = result / len(chunks)
+            result = result // len(chunks)
         fig = plt.figure()
         plt.plot(list(range(-args.up,args.down+1)),result)
         plt.xlabel("Position relative to Site")
         plt.ylabel("Signal Intensity")
-        fig.savefig(args.out+'.agg.track.eps')
+        fig.savefig(args.out+'.agg.track.pdf')
         plt.close(fig)
         np.savetxt(args.out+'.agg.track.txt',result,delimiter="\t")
 

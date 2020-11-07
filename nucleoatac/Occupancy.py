@@ -8,7 +8,6 @@ Classes for computing nucleosome occupancy
 from scipy import signal, optimize, stats
 import numpy as np
 import matplotlib.pyplot as plt
-import pyximport; pyximport.install(setup_args={"include_dirs":np.get_include()})
 from pyatac.fragmentsizes import FragmentSizes
 from pyatac.tracks import Track, CoverageTrack
 from pyatac.chunk import Chunk
@@ -23,9 +22,11 @@ class FragmentMixDistribution:
     def __init__(self,  lower = 0, upper =2000):
         self.lower = lower
         self.upper = upper
+
     def getFragmentSizes(self, bamfile, chunklist = None):
         self.fragmentsizes = FragmentSizes(self.lower, self.upper)
         self.fragmentsizes.calculateSizes(bamfile, chunks = chunklist)
+
     def modelNFR(self, boundaries = (35,115)):
         """Model NFR distribution with gamma distribution"""
         b = np.where(self.fragmentsizes.get(self.lower,boundaries[1]) == max(self.fragmentsizes.get(self.lower,boundaries[1])))[0][0] + self.lower
@@ -64,6 +65,7 @@ class FragmentMixDistribution:
                             self.nfr_fit.get(boundaries[1],self.upper)))
         nuc[nuc<=0]=min(min(nfr)*0.1,min(nuc[nuc>0])*0.001)
         self.nuc_fit = FragmentSizes(self.lower, self.upper, vals = nuc)
+
     def plotFits(self,filename=None):
         """plot the Fits"""
         fig = plt.figure()
@@ -190,7 +192,7 @@ class OccupancyParameters:
         if step%2 == 0:
             step = step - 1
         self.step = step
-        self.halfstep = (self.step-1) / 2
+        self.halfstep = (self.step-1) // 2
 
 class OccChunk(Chunk):
     """Class for calculating occupancy and occupancy peaks
@@ -201,27 +203,32 @@ class OccChunk(Chunk):
         self.chrom = chunk.chrom
         self.peaks = {}
         self.nfrs = []
+
     def getFragmentMat(self):
         self.mat = FragmentMat2D(self.chrom, self.start - self.params.flank,
                                  self.end + self.params.flank, 0, self.params.upper)
         self.mat.makeFragmentMat(self.params.bam)
+
     def makeBiasMat(self):
         self.bias_mat = BiasMat2D(self.chrom, self.start - self.params.flank,
                                  self.end + self.params.flank, 0, self.params.upper)
         if self.params.fasta is not None:
-            bias_track = InsertionBiasTrack(self.chrom, self.start - self.params.window - self.params.upper/2,
-                                  self.end + self.params.window + self.params.upper/2 + 1, log = True)
+            bias_track = InsertionBiasTrack(self.chrom, self.start - self.params.window - self.params.upper//2,
+                                  self.end + self.params.window + self.params.upper//2 + 1, log = True)
             bias_track.computeBias(self.params.fasta, self.params.chrs, self.params.pwm)
             self.bias_mat.makeBiasMat(bias_track)
+
     def calculateOcc(self):
         """calculate occupancy for chunk"""
         self.occ = OccupancyTrack(self.chrom,self.start,self.end)
         self.occ.calculateOccupancyMLE(self.mat, self.bias_mat, self.params)
         self.occ.makeSmoothed(window_len = self.params.window, sd = self.params.flank/3.0)
+    
     def getCov(self):
         """Get read coverage for regions"""
         self.cov = CoverageTrack(self.chrom, self.start, self.end)
         self.cov.calculateCoverage(self.mat, 0, self.params.upper, self.params.window)
+    
     def callPeaks(self):
         """Call peaks of occupancy profile"""
         peaks = call_peaks(self.occ.smoothed_vals, sep = self.params.sep, min_signal = self.params.min_occ)
@@ -229,6 +236,7 @@ class OccChunk(Chunk):
             tmp = OccPeak(peak + self.start, self)
             if tmp.occ_lower > self.params.min_occ and tmp.reads > 0:
                 self.peaks[peak] = tmp
+    
     def getNucDist(self):
         """Get nucleosomal insert distribution"""
         nuc_dist = np.zeros(self.params.upper)
@@ -238,6 +246,7 @@ class OccChunk(Chunk):
             sub_sum = sub_sum / float(sum(sub_sum))
             nuc_dist += sub_sum
         return(nuc_dist)
+    
     def process(self, params):
         """proces chunk -- calculat occupancy, get coverage, call peaks"""
         self.params = params
@@ -246,6 +255,7 @@ class OccChunk(Chunk):
         self.calculateOcc()
         self.getCov()
         self.callPeaks()
+    
     def removeData(self):
         """remove data from chunk-- deletes all attributes"""
         names = list(self.__dict__.keys())

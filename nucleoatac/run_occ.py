@@ -83,8 +83,8 @@ def run_occ(args):
     else:
         chrs = read_chrom_sizes_from_bam(args.bam)
     pwm = PWM.open(args.pwm)
-    chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = args.flank + args.upper/2 + max(pwm.up,pwm.down) + args.nuc_sep/2)
-    chunks.slop(chrs, up = args.nuc_sep/2, down = args.nuc_sep/2)
+    chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = args.flank + args.upper//2 + max(pwm.up,pwm.down) + args.nuc_sep//2)
+    chunks.slop(chrs, up = args.nuc_sep//2, down = args.nuc_sep//2)
     chunks.merge()
     maxQueueSize = args.cores*10
     fragment_dist = FragmentMixDistribution(0, upper = args.upper)
@@ -94,7 +94,7 @@ def run_occ(args):
     else:
         fragment_dist.getFragmentSizes(args.bam, chunks)
     fragment_dist.modelNFR()
-    fragment_dist.plotFits(args.out + '.occ_fit.eps')
+    fragment_dist.plotFits(args.out + '.occ_fit.pdf')
     fragment_dist.fragmentsizes.save(args.out + '.fragmentsizes.txt')
     params = OccupancyParameters(fragment_dist, args.upper, args.fasta, args.pwm, sep = args.nuc_sep, min_occ = args.min_occ,
             flank = args.flank, bam = args.bam, ci = args.confidence_interval, step = args.step)
@@ -115,6 +115,7 @@ def run_occ(args):
     peaks_process = mp.Process(target = _writePeaks, args=(peaks_queue, args.out))
     peaks_process.start()
     nuc_dist = np.zeros(args.upper)
+    
     for j in sets:
         tmp = pool1.map(_occHelper, list(zip(j,itertools.repeat(params))))
         for result in tmp:
@@ -130,6 +131,7 @@ def run_occ(args):
     pysam.tabix_compress(args.out + '.occpeaks.bed', args.out + '.occpeaks.bed.gz',force = True)
     shell_command('rm ' + args.out + '.occpeaks.bed')
     pysam.tabix_index(args.out + '.occpeaks.bed.gz', preset = "bed", force = True)
+    
     for i in ('occ','occ.lower_bound','occ.upper_bound'):
         pysam.tabix_compress(args.out + '.' + i + '.bedgraph', args.out + '.'+i+'.bedgraph.gz',force = True)
         shell_command('rm ' + args.out + '.' + i + '.bedgraph')
@@ -144,7 +146,7 @@ def run_occ(args):
     plt.plot(list(range(0,args.upper)),dist_out.get(0,args.upper),label = "Nucleosome Distribution")
     plt.xlabel("Fragment Size")
     plt.ylabel("Frequency")
-    fig.savefig(args.out+'.nuc_dist.eps')
+    fig.savefig(args.out+'.nuc_dist.pdf')
     plt.close(fig)
 
 

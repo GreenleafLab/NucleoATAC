@@ -39,12 +39,13 @@ class Chunk():
         else:
             self.start = newStart
             self.end = newEnd
+
     def center(self, new = False):
         if self.strand == "-":
-            newEnd = self.end - (self.length()/2)
+            newEnd = self.end - (self.length()//2)
             newStart = newEnd - 1
         else:
-            newStart = self.start + (self.length()/2)
+            newStart = self.start + (self.length()//2)
             newEnd = newStart +1
         if new:
             out = Chunk(self.chrom, newStart, newEnd,

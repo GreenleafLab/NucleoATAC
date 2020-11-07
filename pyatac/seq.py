@@ -55,7 +55,7 @@ def getNucFreqs(fasta, nucleotides):
             out += [sequence.count(i) for i in nucleotides]
             n += len(sequence)
     f.close()
-    return out/n
+    return out//n
 
 
 def getNucFreqsFromChunkList(chunks, fasta, nucleotides):
@@ -69,5 +69,5 @@ def getNucFreqsFromChunkList(chunks, fasta, nucleotides):
         out += [sequence.count(i) for i in nucleotides]
         n += len(sequence)
     handle.close()
-    return out/n
+    return out//n
 
