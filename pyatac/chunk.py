@@ -7,6 +7,7 @@ General tools for dealing with ATAC-Seq data using Python.
 
 import gzip
 import warnings
+import functools
 
 class Chunk():
     """Class that stores reads for a particular chunk of the genome"""
@@ -92,12 +93,16 @@ class ChunkList(list):
             list.insert(self, args[0], args[1])
         else:
             raise ValueError("Expecting Chunk")
+
     def sort(self):
         """sort regions"""
-        list.sort(self, cmp = _chunkCompare)
+        list.sort(self, key=functools.cmp_to_key(_chunkCompare)) # Just hack it; 
+        # Likely to be very slow;
+
     def isSorted(self):
         """check that regions are sorted"""
         return all([_chunkCompare(self[i],self[i+1])==-1 for i in range(len(self)-1)])
+
     def slop(self, chromDict, up = 0, down = 0, new = False):
         out = ChunkList()
         for i in self:
