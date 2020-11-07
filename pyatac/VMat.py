@@ -146,7 +146,7 @@ class VMat:
         """plot the 1d insertion representation of the matrix"""
         fig = plt.figure()
         xlim = len(self.one_d)/2
-        plt.plot(range(-xlim,xlim+1),self.one_d)
+        plt.plot(list(range(-xlim,xlim+1)),self.one_d)
         plt.vlines(-73,0,max(self.one_d)*1.1,linestyles='dashed')
         plt.vlines(73,0,max(self.one_d)*1.1,linestyles='dashed')
         plt.xlabel("Position relative to dyad")
@@ -164,7 +164,7 @@ class VMat:
         fig = plt.figure()
         ins = np.sum(self.mat,axis=1)
         ins = ins/sum(ins)
-        plt.plot(range(self.lower,self.upper),ins)
+        plt.plot(list(range(self.lower,self.upper)),ins)
         plt.xlabel("Insert Size")
         plt.ylabel("Frequency")
         if filename:
@@ -208,7 +208,7 @@ class VMat:
             elif state == 'upper':
                 upper = int(line.strip('\n'))
             elif state == 'mat':
-                mat.append(map(float,line.strip('\n').split('\t')))
+                mat.append(list(map(float,line.strip('\n').split('\t'))))
         try:
             new = VMat(np.array(mat), lower, upper)
         except NameError:

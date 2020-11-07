@@ -26,7 +26,7 @@ def _insHelperSmooth(arg):
         ins.calculateInsertions( args.bam, lower = args.lower, upper = args.upper, atac = args.atac)
         ins.smooth_track(args.smooth, window = "gaussian", mode= 'valid')
     except Exception as e:
-        print('Caught exception when processing:\n'+  chunk.asBed()+"\n")
+        print(('Caught exception when processing:\n'+  chunk.asBed()+"\n"))
         traceback.print_exc()
         print()
         raise e
@@ -39,7 +39,7 @@ def _insHelper(arg):
         ins = InsertionTrack(chunk.chrom, chunk.start, chunk.end)
         ins.calculateInsertions( args.bam, lower = args.lower, upper = args.upper, atac = args.atac)
     except Exception as e:
-        print('Caught exception when processing:\n'+  chunk.asBed()+"\n")
+        print(('Caught exception when processing:\n'+  chunk.asBed()+"\n"))
         traceback.print_exc()
         print()
         raise e
@@ -51,7 +51,7 @@ def _writeIns(track_queue, out):
         for track in iter(track_queue.get, 'STOP'):
             track.write_track(out_handle)
             track_queue.task_done()
-    except Exception, e:
+    except Exception as e:
         print('Caught exception when writing insertion track\n')
         traceback.print_exc()
         print()
@@ -85,9 +85,9 @@ def get_ins(args, bases = 50000, splitsize = 1000):
     write_process.start()
     for j in sets:
         if args.smooth:
-            tmp = pool1.map(_insHelperSmooth, zip(j,itertools.repeat(args)))
+            tmp = pool1.map(_insHelperSmooth, list(zip(j,itertools.repeat(args))))
         else:
-            tmp = pool1.map(_insHelper, zip(j,itertools.repeat(args)))
+            tmp = pool1.map(_insHelper, list(zip(j,itertools.repeat(args))))
         for track in tmp:
             write_queue.put(track)
     pool1.close()

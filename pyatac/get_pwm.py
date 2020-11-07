@@ -34,7 +34,7 @@ def _pwmHelper(arg):
                 mat += ins.getStrandedInsertionSequences(params.fasta, params.nucleotides, up = params.up, down = params.down)
             n += sum(ins.vals)
     except Exception as e:
-        print('Caught exception when processing:\n'+  chunk.asBed()+"\n")
+        print(('Caught exception when processing:\n'+  chunk.asBed()+"\n"))
         traceback.print_exc()
         print()
         raise e
@@ -69,7 +69,7 @@ def get_pwm(args, bases = 50000, splitsize = 1000):
     params = _PWMParameters(bam = args.bam, up = args.flank, down = args.flank, fasta = args.fasta,
                             lower = args.lower, upper = args.upper, atac = args.atac, sym = args.sym)
     pool = Pool(processes = args.cores)
-    tmp = pool.map(_pwmHelper, zip(sets,itertools.repeat(params)))
+    tmp = pool.map(_pwmHelper, list(zip(sets,itertools.repeat(params))))
     pool.close()
     pool.join()
     n = 0.0

@@ -48,7 +48,7 @@ def _biasVplotHelper(arg):
             else:
                 mat += add
         except Exception as e:
-            print('Caught exception when processing:\n' + chunk.asBed() + "\n")
+            print(('Caught exception when processing:\n' + chunk.asBed() + "\n"))
             traceback.print_exc()
             print()
             raise e
@@ -80,7 +80,7 @@ def make_bias_vplot(args):
                                 sizes = args.sizes, scale = args.scale,
                                 pwm = args.pwm, fasta = args.fasta)
     pool = Pool(processes = args.cores)
-    tmp = pool.map(_biasVplotHelper, zip(sets,itertools.repeat(params)))
+    tmp = pool.map(_biasVplotHelper, list(zip(sets,itertools.repeat(params))))
     pool.close()
     pool.join()
     result = sum(tmp)
