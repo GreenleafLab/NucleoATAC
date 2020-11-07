@@ -32,9 +32,9 @@ def nucleoatac_main(args):
         print('---------Calling NFR positions--------------------------------------------------')
         run_nfr(args)
     elif call == "run":
-        occ_args = parser.parse_args(map(str,['occ','--bed',args.bed,'--bam',args.bam,
+        occ_args = parser.parse_args(list(map(str,['occ','--bed',args.bed,'--bam',args.bam,
                                             '--fasta', args.fasta, '--pwm', args.pwm,
-                                            '--out',args.out,'--cores',args.cores]))
+                                            '--out',args.out,'--cores',args.cores])))
         vprocess_args = parser.parse_args(['vprocess','--sizes',args.out+'.nuc_dist.txt','--out',args.out])
         nuc_args_list = ['nuc','--bed',args.bed,'--bam',args.bam,'--out',args.out,'--cores', str(args.cores),
                                         '--occ_track', args.out + '.occ.bedgraph.gz','--vmat', args.out + '.VMat',

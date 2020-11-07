@@ -32,7 +32,7 @@ def _occHelper(arg):
                 occ.occ, [occ.peaks[i] for i in sorted(occ.peaks.keys())])
         occ.removeData()
     except Exception as e:
-        print('Caught exception when processing:\n'+  chunk.asBed()+"\n")
+        print(('Caught exception when processing:\n'+  chunk.asBed()+"\n"))
         traceback.print_exc()
         print()
         raise e
@@ -48,7 +48,7 @@ def _writeOcc(track_queue, out):
             track.write_track(out_handle2, vals = track.smoothed_lower)
             track.write_track(out_handle3, vals = track.smoothed_upper)
             track_queue.task_done()
-    except Exception, e:
+    except Exception as e:
         print('Caught exception when writing occupancy track\n')
         traceback.print_exc()
         print()
@@ -66,7 +66,7 @@ def _writePeaks(pos_queue, out):
             for pos in poslist:
                 pos.write(out_handle)
             pos_queue.task_done()
-    except Exception, e:
+    except Exception as e:
         print('Caught exception when writing occupancy track\n')
         traceback.print_exc()
         print()
@@ -116,7 +116,7 @@ def run_occ(args):
     peaks_process.start()
     nuc_dist = np.zeros(args.upper)
     for j in sets:
-        tmp = pool1.map(_occHelper, zip(j,itertools.repeat(params)))
+        tmp = pool1.map(_occHelper, list(zip(j,itertools.repeat(params))))
         for result in tmp:
             nuc_dist += result[0]
             write_queue.put(result[1])
@@ -138,10 +138,10 @@ def run_occ(args):
     dist_out = FragmentSizes(0, args.upper, vals = nuc_dist)
     dist_out.save(args.out + '.nuc_dist.txt')
 
-    print "Making figure"
+    print("Making figure")
     #make figure
     fig = plt.figure()
-    plt.plot(range(0,args.upper),dist_out.get(0,args.upper),label = "Nucleosome Distribution")
+    plt.plot(list(range(0,args.upper)),dist_out.get(0,args.upper),label = "Nucleosome Distribution")
     plt.xlabel("Fragment Size")
     plt.ylabel("Frequency")
     fig.savefig(args.out+'.nuc_dist.eps')

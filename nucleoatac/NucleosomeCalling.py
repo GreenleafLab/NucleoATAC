@@ -79,7 +79,7 @@ class SignalDistribution:
         sim_mat = np.reshape(sim_vect, self.vmat.mat.shape)
         return sim_mat
     def simulateDist(self, numiters = 1000):
-        self.scores = map(lambda x: np.sum(self.simulateReads() * self.vmat.mat),range(numiters))
+        self.scores = [np.sum(self.simulateReads() * self.vmat.mat) for x in range(numiters)]
     def analStd(self):
         flatv = np.ravel(self.vmat.mat)
         var = calculateCov(self.probs, flatv, self.reads)
@@ -310,7 +310,7 @@ class NucChunk(Chunk):
                         self.nuc_collection[i] = nuc
         self.sorted_nuc_keys = np.array(sorted(self.nuc_collection.keys()))
         self.nonredundant = reduce_peaks( self.sorted_nuc_keys,
-                                            map(lambda x: self.nuc_collection[x].z, self.sorted_nuc_keys),
+                                            [self.nuc_collection[x].z for x in self.sorted_nuc_keys],
                                                 self.params.nonredundant_sep)
         self.redundant = np.setdiff1d(self.sorted_nuc_keys, self.nonredundant)
     def fit(self):
@@ -340,7 +340,7 @@ class NucChunk(Chunk):
         self.makeInsertionTrack()
     def removeData(self):
         """remove data from chunk-- deletes all attributes"""
-        names = self.__dict__.keys()
+        names = list(self.__dict__.keys())
         for name in names:
             delattr(self,name)
 

@@ -24,14 +24,14 @@ from nucleoatac.cli import nucleoatac_parser, nucleoatac_main
 
 
 if __name__ == '__main__':
-    print "Command run:  "+ ' '.join(map(str,sys.argv))
-    print "nucleoatac version " +  __version__
-    print "start run at: " + time.strftime("%Y-%m-%d %H:%M")
+    print("Command run:  "+ ' '.join(map(str,sys.argv)))
+    print("nucleoatac version " +  __version__)
+    print("start run at: " + time.strftime("%Y-%m-%d %H:%M"))
     try:
         parser = nucleoatac_parser()
         args = parser.parse_args()
         nucleoatac_main(args)
-        print "end run at: " + time.strftime("%Y-%m-%d %H:%M")
+        print("end run at: " + time.strftime("%Y-%m-%d %H:%M"))
     except KeyboardInterrupt:
         sys.stderr.write("User interrupted nucleoatac.")
         sys.exit(0)
