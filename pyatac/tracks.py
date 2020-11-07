@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 from pyatac.bedgraph import BedGraphFile
 from pyatac.chunk import Chunk
 from pyatac.utils import smooth
-import pyximport; pyximport.install(setup_args={"include_dirs":np.get_include()})
-from fragments import getInsertions, getStrandedInsertions
+#import pyximport; pyximport.install(setup_args={"include_dirs":np.get_include()})
+from pyatac.fragments import getInsertions, getStrandedInsertions
 from pyatac.seq import get_sequence, seq_to_mat, complement
 
 class Track(Chunk):
