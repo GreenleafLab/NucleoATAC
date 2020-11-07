@@ -57,10 +57,12 @@ class ChunkMat2D:
         if mat.shape != self.mat.shape:
             raise Exception("Dimensions of input mat are wrong.  Uh oh!")
         self.mat = mat
+    
     def save(self, filename):
         """Save object in a text file"""
         head = ",".join(map(str,[self.chrom,self.start,self.end,self.lower,self.upper]))
         np.savetxt(filename,self.mat,delimiter="\t", header = head)
+    
     @staticmethod
     def open(filename):
         f = open(filename,'r')
