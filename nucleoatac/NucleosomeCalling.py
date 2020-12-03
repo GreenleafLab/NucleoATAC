@@ -297,7 +297,7 @@ class NucChunk(Chunk):
         #find peaks in normalized sigal
         cands1 = call_peaks(combined, min_signal = 0,
                                 sep = self.params.redundant_sep,
-                                boundary = self.params.nonredundant_sep/2, order = self.params.redundant_sep/2)
+                                boundary = self.params.nonredundant_sep//2, order = self.params.redundant_sep//2)
         for i in cands1:
             nuc = Nucleosome(i + self.start, self)
             if nuc.nuc_cov > self.params.min_reads:
