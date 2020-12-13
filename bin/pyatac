@@ -16,13 +16,14 @@ of the MIT License (see the file COPYING included with the distribution).
 
 import sys
 import matplotlib as mpl
-mpl.use('PS')
+#mpl.use('PS')
 from pyatac import __version__
 import time
 from pyatac.cli import pyatac_parser, pyatac_main
 
 
 if __name__ == '__main__':
+    freeze_support()
     print("Command run:  "+ ' '.join(map(str,sys.argv)))
     print("pyatac version "+__version__)
     print("start run at: " + time.strftime("%Y-%m-%d %H:%M"))
