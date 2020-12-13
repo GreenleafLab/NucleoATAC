@@ -3,10 +3,9 @@ from setuptools.command.test import test as TestCommand
 import sys
 import os
 
-if float(sys.version[:3])<2.7 or float(sys.version[:3])>=2.8:
-        sys.stderr.write("CRITICAL: Python version must be 2.7!\n")
-        sys.exit(1)
-
+#if float(sys.version[:3])<2.7 or float(sys.version[:3])>=2.8:
+#        sys.stderr.write("CRITICAL: Python version must be 2.7!\n")
+#        sys.exit(1)
 
 class NoTestCommand(TestCommand):
     def run(self):
@@ -20,7 +19,7 @@ setup(name='NucleoATAC',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Scientific/Engineering :: Bio-Informatics'],
     keywords='ATAC-Seq sequencing bioinformatics',
     url='https://github.com/GreenleafLab/NucleoATAC',
