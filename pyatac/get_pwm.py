@@ -13,8 +13,6 @@ import traceback
 import pyatac.seq as seq
 from pyatac.chunk import ChunkList
 from pyatac.bias import PWM
-import pyximport
-pyximport.install(setup_args={"include_dirs":np.get_include()})
 from pyatac.tracks import InsertionTrack
 from pyatac.utils import read_chrom_sizes_from_fasta
 

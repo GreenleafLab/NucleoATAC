@@ -12,7 +12,6 @@ import itertools
 import numpy as np
 import pysam
 import traceback
-import pyximport; pyximport.install()
 from pyatac.tracks import CoverageTrack
 from pyatac.chunk import ChunkList
 from pyatac.utils import shell_command, read_chrom_sizes_from_bam
@@ -23,7 +22,7 @@ def _covHelper(arg):
     (chunk, args) = arg
     try:
         offset = args.window // 2
-        mat = FragmentMat2D(chunk.chrom,chunk.start - offset, chunk.end + offset, args.lower, args.upper, args.atac) 
+        mat = FragmentMat2D(chunk.chrom,chunk.start - offset, chunk.end + offset, args.lower, args.upper, args.atac)
         mat.makeFragmentMat(args.bam)
         cov = CoverageTrack(chunk.chrom, chunk.start, chunk.end)
         cov.calculateCoverage(mat, lower = args.lower, upper = args.upper, window_len = args.window)

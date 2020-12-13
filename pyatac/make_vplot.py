@@ -8,9 +8,6 @@ Script to make V-plot
 # import necessary for python
 import os
 import numpy as np
-#import matplotlib as mpl
-#mpl.use('PS')
-import pyximport; pyximport.install(setup_args={"include_dirs":np.get_include()})
 from pyatac.chunk import ChunkList
 from pyatac.chunkmat2d import FragmentMat2D
 from . import VMat as V
