@@ -97,7 +97,7 @@ class ChunkList(list):
 
     def sort(self):
         """sort regions"""
-        list.sort(self, key=functools.cmp_to_key(_chunkCompare)) # Just hack it; 
+        list.sort(self, key=functools.cmp_to_key(_chunkCompare)) # Just hack it;
         # Likely to be very slow;
 
     def isSorted(self):
@@ -140,7 +140,7 @@ class ChunkList(list):
                 min_offset = None, min_length = 1, chrom_source = "FASTA file"):
         """Make a list of chunks from a tab-delimited bedfile"""
         if bedfile[-3:] == '.gz':
-            infile = gzip.open(bedfile,"r")
+            infile = gzip.open(bedfile,"rt")
         else:
             infile = open(bedfile,"r")
         out = ChunkList()
@@ -175,7 +175,7 @@ class ChunkList(list):
         if chromDict is not None and len(bad_chroms)>0:
             bad_chroms = set(bad_chroms)
             warn_message = (str(len(bad_chroms)) + " chromosome names in bed file not included in " +
-                            chrom_source + ":\n" + "\n".join(bad_chroms) +  "\n " + 
+                            chrom_source + ":\n" + "\n".join(bad_chroms) +  "\n " +
                             "These regions will be ignored in subsequent analysis")
             warnings.warn(warn_message)
         return out
