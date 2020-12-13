@@ -7,6 +7,7 @@ General tools for dealing with ATAC-Seq data using Python.
 
 import gzip
 import warnings
+import functools
 
 class Chunk():
     """Class that stores reads for a particular chunk of the genome"""
@@ -38,12 +39,13 @@ class Chunk():
         else:
             self.start = newStart
             self.end = newEnd
+
     def center(self, new = False):
         if self.strand == "-":
-            newEnd = self.end - (self.length()/2)
+            newEnd = self.end - (self.length()//2)
             newStart = newEnd - 1
         else:
-            newStart = self.start + (self.length()/2)
+            newStart = self.start + (self.length()//2)
             newEnd = newStart +1
         if new:
             out = Chunk(self.chrom, newStart, newEnd,
@@ -92,12 +94,16 @@ class ChunkList(list):
             list.insert(self, args[0], args[1])
         else:
             raise ValueError("Expecting Chunk")
+
     def sort(self):
         """sort regions"""
-        list.sort(self, cmp = _chunkCompare)
+        list.sort(self, key=functools.cmp_to_key(_chunkCompare)) # Just hack it; 
+        # Likely to be very slow;
+
     def isSorted(self):
         """check that regions are sorted"""
-        return all([_chunkCompare(self[i],self[i+1])==-1 for i in xrange(len(self)-1)])
+        return all([_chunkCompare(self[i],self[i+1])==-1 for i in range(len(self)-1)])
+
     def slop(self, chromDict, up = 0, down = 0, new = False):
         out = ChunkList()
         for i in self:
@@ -154,7 +160,7 @@ class ChunkList(list):
             start = int(in_line[1])
             end = int(in_line[2])
             chrom = in_line[0]
-            if chromDict is not None and chrom not in chromDict.keys():
+            if chromDict is not None and chrom not in list(chromDict.keys()):
                 bad_chroms.append(chrom)
                 continue
             if min_offset:
@@ -183,7 +189,7 @@ class ChunkList(list):
             out = ChunkList()
             for chrom in chrs:
                 out.extend(ChunkList(*(Chunk(chrom, i, min(i + splitsize, chromDict[chrom] - offset))
-                        for i in xrange(offset, chromDict[chrom] - offset, splitsize))))
+                        for i in range(offset, chromDict[chrom] - offset, splitsize))))
             return out
     def split(self, bases = None, items = None):
         """splits list of chunks into set of sublists"""
@@ -202,7 +208,7 @@ class ChunkList(list):
                 out.append(self[i:(k+1)])
             return out
         elif items is not None:
-            out = [ self[i:i+items] for i in xrange(0,len(self),items)]
+            out = [ self[i:i+items] for i in range(0,len(self),items)]
             return out
         else:
             raise Exception("Need to provide items or bases argument!")

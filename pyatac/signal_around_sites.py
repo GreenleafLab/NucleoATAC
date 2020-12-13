@@ -62,7 +62,7 @@ def _signalHelper(arg):
                 sig[np.isnan(sig)]=0
                 agg += sig
         except Exception as e:
-            print('Caught exception when processing:\n' + chunk.asBed() + "\n")
+            print(('Caught exception when processing:\n' + chunk.asBed() + "\n"))
             traceback.print_exc()
             print()
             bg.close()
@@ -96,7 +96,7 @@ def get_signal(args):
                              args.scale, args.positive, args.all)
     sets = chunks.split(items = min(args.cores*20,len(chunks)))
     pool = Pool(processes = args.cores)
-    tmp = pool.map(_signalHelper, zip(sets,itertools.repeat(params)))
+    tmp = pool.map(_signalHelper, list(zip(sets,itertools.repeat(params))))
     pool.close()
     pool.join()
     if args.all:
@@ -108,12 +108,12 @@ def get_signal(args):
         result = sum(tmp)
     if not args.no_agg:
         if args.norm:
-            result = result / len(chunks)
+            result = result // len(chunks)
         fig = plt.figure()
-        plt.plot(range(-args.up,args.down+1),result)
+        plt.plot(list(range(-args.up,args.down+1)),result)
         plt.xlabel("Position relative to Site")
         plt.ylabel("Signal Intensity")
-        fig.savefig(args.out+'.agg.track.eps')
+        fig.savefig(args.out+'.agg.track.pdf')
         plt.close(fig)
         np.savetxt(args.out+'.agg.track.txt',result,delimiter="\t")
 

@@ -9,8 +9,7 @@ import matplotlib.pyplot as plt
 from pyatac.bedgraph import BedGraphFile
 from pyatac.chunk import Chunk
 from pyatac.utils import smooth
-import pyximport; pyximport.install(setup_args={"include_dirs":np.get_include()})
-from fragments import getInsertions, getStrandedInsertions
+from pyatac.fragments import getInsertions, getStrandedInsertions
 from pyatac.seq import get_sequence, seq_to_mat, complement
 
 class Track(Chunk):
@@ -47,7 +46,7 @@ class Track(Chunk):
         if vals is None:
             vals=self.vals
         if len(vals)!=self.end-self.start:
-            print len(vals),self.end-self.start
+            print(len(vals),self.end-self.start)
             raise Exception("Error! Inconsistency between length of \
             values and start/end values")
         prev_value = None
@@ -88,14 +87,14 @@ class Track(Chunk):
     def log(self, pseudo = 1):
         """Log values.  Add psuedo count so values don't equal 0 before logging"""
         if self.log:
-            print "Logging a track that is already log..."
+            print("Logging a track that is already log...")
         adjusted = self.vals + pseudo
         self.vals = np.log(adjusted)
         self.log = True
     def exp(self):
         """Take exponent of values"""
         if not self.log:
-            print "taking exponent of a non-logged track..."
+            print("taking exponent of a non-logged track...")
         self.vals = np.exp(self.vals)
         self.log = False
     def smooth_track(self,  window_len, window='flat', sd = None,
@@ -105,8 +104,8 @@ class Track(Chunk):
         self.vals = smooth(self.vals, window_len, window = window, sd = sd,
                            mode = mode, norm = norm)
         if mode == 'valid':
-            self.start = self.start + window_len/2
-            self.end = self.end - window_len/2
+            self.start = self.start + window_len//2
+            self.end = self.end - window_len//2
     def get(self, start = None, end = None, pos = None):
         """Obtain value of track at particular interval or position"""
         if pos:
@@ -135,7 +134,7 @@ class Track(Chunk):
             name = self.name
         values = self.get(start,end)
         fig = plt.figure()
-        plt.plot(range(start,end),values)
+        plt.plot(list(range(start,end)),values)
         plt.xlabel(self.chrom)
         plt.ylabel(name)
         if filename:
@@ -143,7 +142,7 @@ class Track(Chunk):
             plt.close(fig)
             #Also save text output!
             filename2 = ".".join(filename.split(".")[:-1]+['txt'])
-            out = np.vstack((range(start,end),values))
+            out = np.vstack((list(range(start,end)),values))
             np.savetxt(filename2,out,delimiter="\t")
         else:
             fig.show()
@@ -208,10 +207,9 @@ class CoverageTrack(Track):
         Track.__init__(self, chrom, start, end, "coverage")
     def calculateCoverage(self, mat, lower, upper, window_len):
         """Compute coverage of fragment centers using flat window"""
-        offset=self.start-mat.start-(window_len/2)
+        offset=self.start-mat.start-(window_len//2)
         if offset<0:
-            raise Exception("Insufficient flanking region on \
-                    mat to calculate coverage with desired window")
+            raise Exception("Insufficient flanking region on mat to calculate coverage with desired window")
         lower=lower-mat.lower
         upper=upper-mat.lower
         if offset!=0:
@@ -224,8 +222,7 @@ class CoverageTrack(Track):
         """Compute coverage of fragment centers using gaussia window"""
         offset=self.start-mat.start-(window_len/2)
         if offset<0:
-            raise Exception("Insufficient flanking region on \
-                    mat to calculate coverage with desired window")
+            raise Exception("Insufficient flanking region on mat to calculate coverage with desired window")
         lower=lower-mat.lower
         upper=upper-mat.lower
         if offset!=0:

@@ -32,7 +32,7 @@ def _nucHelper(arg):
                                'nucleoatac_signal.smooth' : nuc.smoothed}
         nuc.removeData()
     except Exception as e:
-        print('Caught exception when processing:\n'+  chunk.asBed()+"\n")
+        print(('Caught exception when processing:\n'+  chunk.asBed()+"\n"))
         traceback.print_exc()
         print()
         raise e
@@ -46,7 +46,7 @@ def _writeNucSig(track_queue, out):
         for track in iter(track_queue.get, 'STOP'):
             track.write_track(out_handle)
             track_queue.task_done()
-    except Exception, e:
+    except Exception as e:
         print('Caught exception when writing NucleoATAC signal track\n')
         traceback.print_exc()
         print()
@@ -61,7 +61,7 @@ def _writeBackground(track_queue, out):
         for track in iter(track_queue.get, 'STOP'):
             track.write_track(out_handle)
             track_queue.task_done()
-    except Exception, e:
+    except Exception as e:
         print('Caught exception when writing NucleoATAC background track\n')
         traceback.print_exc()
         print()
@@ -76,7 +76,7 @@ def _writeSmooth(track_queue, out):
         for track in iter(track_queue.get, 'STOP'):
             track.write_track(out_handle)
             track_queue.task_done()
-    except Exception, e:
+    except Exception as e:
         print('Caught exception when writing smoothed NucleoATAC signal track\n')
         traceback.print_exc()
         print()
@@ -90,7 +90,7 @@ def _writeRaw(track_queue, out):
         for track in iter(track_queue.get, 'STOP'):
             track.write_track(out_handle)
             track_queue.task_done()
-    except Exception, e:
+    except Exception as e:
         print('Caught exception when writing un-normalized NucleoATAC signal track\n')
         traceback.print_exc()
         print()
@@ -107,7 +107,7 @@ def _writeNucPos(pos_queue, out):
             for pos in poslist:
                 pos.write(out_handle)
             pos_queue.task_done()
-    except Exception, e:
+    except Exception as e:
         print('Caught exception when writing nucleosome position file\n')
         traceback.print_exc()
         print()
@@ -122,7 +122,7 @@ def _writeNucPosRedundant(pos_queue, out):
             for pos in poslist:
                 pos.write(out_handle)
             pos_queue.task_done()
-    except Exception, e:
+    except Exception as e:
         print('Caught exception when writing redundant nucleosome position file\n')
         traceback.print_exc()
         print()
@@ -148,8 +148,8 @@ def run_nuc(args):
     else:
         chrs = read_chrom_sizes_from_bam(args.bam)
     pwm = PWM.open(args.pwm)
-    chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = vmat.mat.shape[1] + vmat.upper/2 + max(pwm.up,pwm.down) + args.nuc_sep/2, min_length = args.nuc_sep * 2)
-    chunks.slop(chrs, up = args.nuc_sep/2, down = args.nuc_sep/2)
+    chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = vmat.mat.shape[1] + vmat.upper//2 + max(pwm.up,pwm.down) + args.nuc_sep//2, min_length = args.nuc_sep * 2)
+    chunks.slop(chrs, up = args.nuc_sep//2, down = args.nuc_sep//2)
     chunks.merge()
     maxQueueSize = args.cores*10
     if args.sizes is not None:
@@ -181,7 +181,7 @@ def run_nuc(args):
         write_processes[i] = mp.Process(target = _writeFuncs[i], args=(write_queues[i], args.out))
         write_processes[i].start()
     for j in sets:
-        tmp = pool1.map(_nucHelper, zip(j,itertools.repeat(params)))
+        tmp = pool1.map(_nucHelper, list(zip(j,itertools.repeat(params))))
         for result in tmp:
             for i in outputs:
                 write_queues[i].put(result[i])

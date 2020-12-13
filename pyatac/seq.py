@@ -22,7 +22,7 @@ def get_sequence(chunk, fastafile):
     return sequence.upper()
 
 
-DNA_Translation = string.maketrans('ACGT', 'TGCA')
+DNA_Translation = ''.maketrans('ACGT', 'TGCA')
 
 def complement(sequence):
     """Get complement of DNA sequenceuence"""
@@ -41,7 +41,7 @@ def seq_to_mat(sequence, nucleotides):
         raise Exception("Usage Error! Nucleotides must all be of same length! No mixing single nucleotides with dinucleotides, etc")
     mat = np.zeros((len(nucleotides),len(sequence)-l+1))
     for i in range(len(nucleotides)):
-        mat[i] = np.array(map(int,[sequence[j:j+l] ==nucleotides[i] for j in range(len(sequence)-l+1)]))
+        mat[i] = np.array(list(map(int,[sequence[j:j+l] ==nucleotides[i] for j in range(len(sequence)-l+1)])))
     return(mat)
 
 def getNucFreqs(fasta, nucleotides):
@@ -55,7 +55,7 @@ def getNucFreqs(fasta, nucleotides):
             out += [sequence.count(i) for i in nucleotides]
             n += len(sequence)
     f.close()
-    return out/n
+    return out//n
 
 
 def getNucFreqsFromChunkList(chunks, fasta, nucleotides):
@@ -69,5 +69,5 @@ def getNucFreqsFromChunkList(chunks, fasta, nucleotides):
         out += [sequence.count(i) for i in nucleotides]
         n += len(sequence)
     handle.close()
-    return out/n
+    return out//n
 

@@ -1,3 +1,1 @@
-#Define version based on setup script
-import pkg_resources
-__version__ = pkg_resources.require("NucleoATAC")[0].version
+__version__ = '0.3.4.py3'

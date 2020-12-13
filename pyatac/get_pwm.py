@@ -34,7 +34,7 @@ def _pwmHelper(arg):
                 mat += ins.getStrandedInsertionSequences(params.fasta, params.nucleotides, up = params.up, down = params.down)
             n += sum(ins.vals)
     except Exception as e:
-        print('Caught exception when processing:\n'+  chunk.asBed()+"\n")
+        print(('Caught exception when processing:\n'+  chunk.asBed()+"\n"))
         traceback.print_exc()
         print()
         raise e
@@ -62,14 +62,14 @@ def get_pwm(args, bases = 50000, splitsize = 1000):
     chrs = read_chrom_sizes_from_fasta(args.fasta)
     if args.bed is None:
         chunks = ChunkList.convertChromSizes(chrs, splitsize = splitsize, offset = args.flank)
-        sets = chunks.split(items = bases/splitsize)
+        sets = chunks.split(items = bases//splitsize)
     else:
         chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = args.flank)
         sets = chunks.split(bases = bases)
     params = _PWMParameters(bam = args.bam, up = args.flank, down = args.flank, fasta = args.fasta,
                             lower = args.lower, upper = args.upper, atac = args.atac, sym = args.sym)
     pool = Pool(processes = args.cores)
-    tmp = pool.map(_pwmHelper, zip(sets,itertools.repeat(params)))
+    tmp = pool.map(_pwmHelper, list(zip(sets,itertools.repeat(params))))
     pool.close()
     pool.join()
     n = 0.0
@@ -88,7 +88,7 @@ def get_pwm(args, bases = 50000, splitsize = 1000):
         left = result[:,0:(args.flank + 1)]
         right = result[:,args.flank:]
         rightflipped = np.fliplr(np.flipud(right))
-        combined = (left + rightflipped) / 2
+        combined = (left + rightflipped) // 2
         result = np.hstack((combined, np.fliplr(np.flipud(combined[:,0:args.flank]))))
     #save
     pwm = PWM(result, args.flank, args.flank, params.nucleotides)

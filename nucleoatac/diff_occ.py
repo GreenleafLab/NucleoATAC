@@ -29,7 +29,7 @@ def _diffHelper(arg):
                 occ.occ, [occ.peaks[i] for i in sorted(occ.peaks.keys())])
         occ.removeData()
     except Exception as e:
-        print('Caught exception when processing:\n'+  chunk.asBed()+"\n")
+        print(('Caught exception when processing:\n'+  chunk.asBed()+"\n"))
         traceback.print_exc()
         print()
         raise e
@@ -43,7 +43,7 @@ def _writeDiff(pos_queue, out):
             for pos in poslist:
                 pos.write(out_handle)
             pos_queue.task_done()
-    except Exception, e:
+    except Exception as e:
         print('Caught exception when writing occupancy track\n')
         traceback.print_exc()
         print()
@@ -57,7 +57,7 @@ def run_diff(args, bases = 500000):
     """
     chrs = read_chrom_sizes_from_bam(args.bam)
     pwm = PWM.open(args.pwm)
-    chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = args.flank + args.upper/2 + max(pwm.up,pwm.down))
+    chunks = ChunkList.read(args.bed, chromDict = chrs, min_offset = args.flank + args.upper//2 + max(pwm.up,pwm.down))
     chunks.merge()
     maxQueueSize = max(2,int(100 * bases / np.mean([chunk.length() for chunk in chunks])))
     #get fragmentsizes
@@ -78,7 +78,7 @@ def run_diff(args, bases = 500000):
     diff_process.start()
     nuc_dist = np.zeros(args.upper)
     for j in sets:
-        tmp = pool1.map(_occHelper, zip(j,itertools.repeat(params)))
+        tmp = pool1.map(_occHelper, list(zip(j,itertools.repeat(params))))
         for result in tmp:
             diff_queue.put(result[1])
     pool1.close()

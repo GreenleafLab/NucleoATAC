@@ -61,7 +61,7 @@ class BiasTrack(Track):
                                                          self.bias_mat.start + offset,
                                                          self.bias_mat.end - offset),
                                        vmat.mat,mode = 'valid')[0]
-        self.vals = self.vals * self.nuc_cov/ self.cov.vals
+        self.vals = self.vals * self.nuc_cov // self.cov.vals
 
 
 
@@ -79,7 +79,7 @@ class SignalDistribution:
         sim_mat = np.reshape(sim_vect, self.vmat.mat.shape)
         return sim_mat
     def simulateDist(self, numiters = 1000):
-        self.scores = map(lambda x: np.sum(self.simulateReads() * self.vmat.mat),range(numiters))
+        self.scores = [np.sum(self.simulateReads() * self.vmat.mat) for x in range(numiters)]
     def analStd(self):
         flatv = np.ravel(self.vmat.mat)
         var = calculateCov(self.probs, flatv, self.reads)
@@ -91,8 +91,7 @@ class SignalDistribution:
 
 def norm(x, v, w, mean):
     """compute values of normal pdf with given mean and sd at values in x"""
-    norm = (1.0/(np.sqrt(2*np.pi*v)) *
-        np.exp(-(x - mean)**2/(2*v)))
+    norm = (1.0/(np.sqrt(2*np.pi*v)) * np.exp(-(x - mean)**2/(2*v)))
     norm = norm * (w/max(norm))
     return norm
 
@@ -139,7 +138,7 @@ class Nucleosome(Chunk):
             """Add several normal distributions together"""
             l = len(x)
             fit = np.zeros(l)
-            i = len(params)/3
+            i = len(params)//3
             for j in range(i):
                 fit += norm(x,params[j*3],params[3*j+1],params[3*j+2])
             return fit
@@ -156,21 +155,21 @@ class Nucleosome(Chunk):
         allnucs = nuctrack.sorted_nuc_keys
         x = bisect_left(allnucs,index)
         if x == 0:
-            left = index - nuctrack.params.nonredundant_sep/3
-            means = (nuctrack.params.nonredundant_sep/3,)
+            left = index - nuctrack.params.nonredundant_sep//3
+            means = (nuctrack.params.nonredundant_sep//3,)
         elif index - allnucs[x-1] < nuctrack.params.nonredundant_sep:
             left = allnucs[x-1]
             means = (index - allnucs[x-1],0)
         else:
-            left = index - nuctrack.params.nonredundant_sep/3
-            means = (nuctrack.params.nonredundant_sep/3,)
+            left = index - nuctrack.params.nonredundant_sep//3
+            means = (nuctrack.params.nonredundant_sep//3,)
         if x == len(allnucs)-1:
-            right = index + nuctrack.params.nonredundant_sep/3 + 1
+            right = index + nuctrack.params.nonredundant_sep//3 + 1
         elif allnucs[x+1] - index < nuctrack.params.nonredundant_sep:
             right = allnucs[x+1]
             means += (allnucs[x+1] - left,)
         else:
-            right = index + nuctrack.params.nonredundant_sep/3 +1
+            right = index + nuctrack.params.nonredundant_sep//3 +1
         sig = nuctrack.smoothed.vals[left:right]
         sig[sig<0] = 0
         if len(means)==1:
@@ -237,14 +236,14 @@ class NucChunk(Chunk):
     def initialize(self, parameters):
         self.params = parameters
     def getFragmentMat(self):
-        self.mat = FragmentMat2D(self.chrom, self.start - max(self.params.window,self.params.upper/2+1),
-                                 self.end + max(self.params.window,self.params.upper/2+1), 0, self.params.upper, atac = self.params.atac)
+        self.mat = FragmentMat2D(self.chrom, self.start - max(self.params.window,self.params.upper//2+1),
+                                 self.end + max(self.params.window,self.params.upper//2+1), 0, self.params.upper, atac = self.params.atac)
         self.mat.makeFragmentMat(self.params.bam)
     def makeBiasMat(self):
         self.bias_mat = BiasMat2D(self.chrom, self.start - self.params.window,
                                  self.end + self.params.window, 0, self.params.upper)
-        bias_track = InsertionBiasTrack(self.chrom, self.start - self.params.window - self.params.upper/2,
-                                  self.end + self.params.window + self.params.upper/2 + 1, log = True)
+        bias_track = InsertionBiasTrack(self.chrom, self.start - self.params.window - self.params.upper//2,
+                                  self.end + self.params.window + self.params.upper//2 + 1, log = True)
         if self.params.fasta is not None:
             bias_track.computeBias(self.params.fasta, self.params.chrs, self.params.pwm)
             self.bias_mat.makeBiasMat(bias_track)
@@ -298,7 +297,7 @@ class NucChunk(Chunk):
         #find peaks in normalized sigal
         cands1 = call_peaks(combined, min_signal = 0,
                                 sep = self.params.redundant_sep,
-                                boundary = self.params.nonredundant_sep/2, order = self.params.redundant_sep/2)
+                                boundary = self.params.nonredundant_sep//2, order = self.params.redundant_sep//2)
         for i in cands1:
             nuc = Nucleosome(i + self.start, self)
             if nuc.nuc_cov > self.params.min_reads:
@@ -310,7 +309,7 @@ class NucChunk(Chunk):
                         self.nuc_collection[i] = nuc
         self.sorted_nuc_keys = np.array(sorted(self.nuc_collection.keys()))
         self.nonredundant = reduce_peaks( self.sorted_nuc_keys,
-                                            map(lambda x: self.nuc_collection[x].z, self.sorted_nuc_keys),
+                                            [self.nuc_collection[x].z for x in self.sorted_nuc_keys],
                                                 self.params.nonredundant_sep)
         self.redundant = np.setdiff1d(self.sorted_nuc_keys, self.nonredundant)
     def fit(self):
@@ -340,7 +339,7 @@ class NucChunk(Chunk):
         self.makeInsertionTrack()
     def removeData(self):
         """remove data from chunk-- deletes all attributes"""
-        names = self.__dict__.keys()
+        names = list(self.__dict__.keys())
         for name in names:
             delattr(self,name)
 

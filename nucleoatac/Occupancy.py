@@ -8,7 +8,6 @@ Classes for computing nucleosome occupancy
 from scipy import signal, optimize, stats
 import numpy as np
 import matplotlib.pyplot as plt
-import pyximport; pyximport.install(setup_args={"include_dirs":np.get_include()})
 from pyatac.fragmentsizes import FragmentSizes
 from pyatac.tracks import Track, CoverageTrack
 from pyatac.chunk import Chunk
@@ -23,9 +22,11 @@ class FragmentMixDistribution:
     def __init__(self,  lower = 0, upper =2000):
         self.lower = lower
         self.upper = upper
+
     def getFragmentSizes(self, bamfile, chunklist = None):
         self.fragmentsizes = FragmentSizes(self.lower, self.upper)
         self.fragmentsizes.calculateSizes(bamfile, chunks = chunklist)
+
     def modelNFR(self, boundaries = (35,115)):
         """Model NFR distribution with gamma distribution"""
         b = np.where(self.fragmentsizes.get(self.lower,boundaries[1]) == max(self.fragmentsizes.get(self.lower,boundaries[1])))[0][0] + self.lower
@@ -64,14 +65,15 @@ class FragmentMixDistribution:
                             self.nfr_fit.get(boundaries[1],self.upper)))
         nuc[nuc<=0]=min(min(nfr)*0.1,min(nuc[nuc>0])*0.001)
         self.nuc_fit = FragmentSizes(self.lower, self.upper, vals = nuc)
+
     def plotFits(self,filename=None):
         """plot the Fits"""
         fig = plt.figure()
-        plt.plot(range(self.lower,self.upper),self.fragmentsizes.get(),
+        plt.plot(list(range(self.lower,self.upper)),self.fragmentsizes.get(),
                  label = "Observed")
-        plt.plot(range(self.lower,self.upper),self.nfr_fit0.get(), label = "NFR Fit")
-        plt.plot(range(self.lower,self.upper),self.nuc_fit.get(), label = "Nucleosome Model")
-        plt.plot(range(self.lower,self.upper),self.nfr_fit.get(), label = "NFR Model")
+        plt.plot(list(range(self.lower,self.upper)),self.nfr_fit0.get(), label = "NFR Fit")
+        plt.plot(list(range(self.lower,self.upper)),self.nuc_fit.get(), label = "Nucleosome Model")
+        plt.plot(list(range(self.lower,self.upper)),self.nfr_fit.get(), label = "NFR Model")
         plt.legend()
         plt.xlabel("Fragment size")
         plt.ylabel("Relative Frequency")
@@ -109,8 +111,8 @@ def calculateOccupancy(inserts, bias, params):
     nuc_probs = nuc_probs / np.sum(nuc_probs)
     nfr_probs = params.nfr_probs * bias
     nfr_probs = nfr_probs / np.sum(nfr_probs)
-    x = map(lambda alpha: np.log(alpha * nuc_probs + (1 - alpha) * nfr_probs), params.alphas)
-    logliks = np.array(map(lambda j: np.sum(x[j]*inserts),range(params.l)))
+    x = [np.log(alpha * nuc_probs + (1 - alpha) * nfr_probs) for alpha in params.alphas]
+    logliks = np.array([np.sum(x[j]*inserts) for j in range(params.l)])
     logliks[np.isnan(logliks)] = -float('inf')
     occ = params.alphas[np.argmax(logliks)]
     #Compute upper and lower bounds for 95% confidence interval
@@ -129,11 +131,11 @@ class OccupancyTrack(Track):
         """Calculate Occupancy track"""
         offset=self.start - mat.start
         if offset<params.flank:
-            raise Exception("For calculateOccupancyMLE, mat does not have sufficient flanking regions"),offset
+            raise Exception("For calculateOccupancyMLE, mat does not have sufficient flanking regions")(offset)
         self.vals=np.ones(self.end - self.start)*float('nan')
         self.lower_bound = np.ones(self.end - self.start)*float('nan')
         self.upper_bound =np.ones(self.end - self.start)*float('nan')
-        for i in xrange(params.halfstep,len(self.vals),params.step):
+        for i in range(params.halfstep,len(self.vals),params.step):
             new_inserts = np.sum(mat.get(lower = 0, upper = params.upper,
                                          start = self.start+i-params.flank, end = self.start+i+params.flank+1),
                                          axis = 1)
@@ -190,7 +192,7 @@ class OccupancyParameters:
         if step%2 == 0:
             step = step - 1
         self.step = step
-        self.halfstep = (self.step-1) / 2
+        self.halfstep = (self.step-1) // 2
 
 class OccChunk(Chunk):
     """Class for calculating occupancy and occupancy peaks
@@ -201,27 +203,32 @@ class OccChunk(Chunk):
         self.chrom = chunk.chrom
         self.peaks = {}
         self.nfrs = []
+
     def getFragmentMat(self):
         self.mat = FragmentMat2D(self.chrom, self.start - self.params.flank,
                                  self.end + self.params.flank, 0, self.params.upper)
         self.mat.makeFragmentMat(self.params.bam)
+
     def makeBiasMat(self):
         self.bias_mat = BiasMat2D(self.chrom, self.start - self.params.flank,
                                  self.end + self.params.flank, 0, self.params.upper)
         if self.params.fasta is not None:
-            bias_track = InsertionBiasTrack(self.chrom, self.start - self.params.window - self.params.upper/2,
-                                  self.end + self.params.window + self.params.upper/2 + 1, log = True)
+            bias_track = InsertionBiasTrack(self.chrom, self.start - self.params.window - self.params.upper//2,
+                                  self.end + self.params.window + self.params.upper//2 + 1, log = True)
             bias_track.computeBias(self.params.fasta, self.params.chrs, self.params.pwm)
             self.bias_mat.makeBiasMat(bias_track)
+
     def calculateOcc(self):
         """calculate occupancy for chunk"""
         self.occ = OccupancyTrack(self.chrom,self.start,self.end)
         self.occ.calculateOccupancyMLE(self.mat, self.bias_mat, self.params)
         self.occ.makeSmoothed(window_len = self.params.window, sd = self.params.flank/3.0)
+    
     def getCov(self):
         """Get read coverage for regions"""
         self.cov = CoverageTrack(self.chrom, self.start, self.end)
         self.cov.calculateCoverage(self.mat, 0, self.params.upper, self.params.window)
+    
     def callPeaks(self):
         """Call peaks of occupancy profile"""
         peaks = call_peaks(self.occ.smoothed_vals, sep = self.params.sep, min_signal = self.params.min_occ)
@@ -229,15 +236,17 @@ class OccChunk(Chunk):
             tmp = OccPeak(peak + self.start, self)
             if tmp.occ_lower > self.params.min_occ and tmp.reads > 0:
                 self.peaks[peak] = tmp
+    
     def getNucDist(self):
         """Get nucleosomal insert distribution"""
         nuc_dist = np.zeros(self.params.upper)
-        for peak in self.peaks.keys():
+        for peak in list(self.peaks.keys()):
             sub = self.mat.get(start = self.peaks[peak].start-self.params.flank, end = self.peaks[peak].start+1+self.params.flank)
             sub_sum = np.sum(sub,axis=1)
             sub_sum = sub_sum / float(sum(sub_sum))
             nuc_dist += sub_sum
         return(nuc_dist)
+    
     def process(self, params):
         """proces chunk -- calculat occupancy, get coverage, call peaks"""
         self.params = params
@@ -246,9 +255,10 @@ class OccChunk(Chunk):
         self.calculateOcc()
         self.getCov()
         self.callPeaks()
+    
     def removeData(self):
         """remove data from chunk-- deletes all attributes"""
-        names = self.__dict__.keys()
+        names = list(self.__dict__.keys())
         for name in names:
             delattr(self, name)
 

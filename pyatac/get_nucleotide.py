@@ -31,7 +31,7 @@ def _nucleotideHelper(arg):
                 mat += submat
                 n += 1
     except Exception as e:
-        print('Caught exception when processing:\n'+  chunk.asBed()+'\n')
+        print(('Caught exception when processing:\n'+  chunk.asBed()+'\n'))
         traceback.print_exc()
         print()
         raise e
@@ -66,7 +66,7 @@ def get_nucleotide(args):
     params = _NucleotideParameters(args.up, args.down, args.fasta, args.dinucleotide)
     sets = chunks.split(bases = 10000)
     pool = Pool(processes = args.cores)
-    tmp = pool.map(_nucleotideHelper, zip(sets,itertools.repeat(params)))
+    tmp = pool.map(_nucleotideHelper, list(zip(sets,itertools.repeat(params))))
     pool.close()
     pool.join()
     result = np.zeros(params.matsize)
@@ -74,7 +74,7 @@ def get_nucleotide(args):
     for i in tmp:
         result += i[0]
         n += i[1]
-    result = result / n
+    result = result // n
     if args.norm:
         normfreqs = seq.getNucFreqs(params.fasta, params.nucleotides)
         result = result / np.reshape(np.repeat(normfreqs,result.shape[1]),result.shape)

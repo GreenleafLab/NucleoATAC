@@ -90,7 +90,7 @@ def call_peaks(sigvals, min_signal = 0, sep = 120, boundary = None, order =1):
             replace = min(sigvals[~np.isnan(sigvals)])
             sigvals[np.isnan(sigvals)]=replace
     if boundary is None:
-        boundary = sep/2
+        boundary = sep//2
     random = np.random.RandomState(seed = 25)
     l = len(sigvals)
     peaks = signal.argrelmax(sigvals *(1+
