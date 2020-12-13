@@ -3,7 +3,6 @@ from scipy import signal
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from pyatac.tracks import InsertionTrack
-#import pyximport; pyximport.install(setup_args={"include_dirs":np.get_include()})
 from pyatac.fragments import makeFragmentMat
 
 class ChunkMat2D:
@@ -59,12 +58,12 @@ class ChunkMat2D:
         if mat.shape != self.mat.shape:
             raise Exception("Dimensions of input mat are wrong.  Uh oh!")
         self.mat = mat
-    
+
     def save(self, filename):
         """Save object in a text file"""
         head = ",".join(map(str,[self.chrom,self.start,self.end,self.lower,self.upper]))
         np.savetxt(filename,self.mat,delimiter="\t", header = head)
-    
+
     @staticmethod
     def open(filename):
         f = open(filename,'r')
@@ -150,7 +149,7 @@ class BiasMat2D(ChunkMat2D):
         if not bias_track.log:
             nonzero = np.where(bias !=0)[0]
             bias = np.log(bias + min(bias[nonzero]))
-        
+
         pattern = np.zeros((self.upper-self.lower,self.upper + (self.upper-1)%2))
         mid = self.upper//2
         for i in range(self.lower,self.upper):

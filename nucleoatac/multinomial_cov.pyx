@@ -10,11 +10,8 @@ import numpy as np
 cimport numpy as np
 cimport cython
 
-
-DTYPE = np.float
+#DTYPE = np.float
 ctypedef np.float_t DTYPE_t
-
-
 
 @cython.boundscheck(False)
 def calculateCov(np.ndarray[DTYPE_t, ndim=1] p, np.ndarray[DTYPE_t, ndim=1] v, int r):
