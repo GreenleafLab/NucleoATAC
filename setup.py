@@ -6,7 +6,7 @@ import os
 class NoTestCommand(TestCommand):
     def run(self):
         print("NucleoATAC does not support running tests with "
-              "'python setup.py test'. Please run 'python tests.py'")
+              "'python setup.py test'. The test suite can be run via 'pytest'")
 
 
 setup(name='NucleoATAC',
@@ -28,5 +28,4 @@ setup(name='NucleoATAC',
     scripts=['bin/pyatac','bin/nucleoatac'],
     include_package_data=True,
     zip_safe=False,
-    tests_require=['nose'],
     cmdclass = {'test': NoTestCommand})
