@@ -10,7 +10,6 @@ from copy import copy
 from bisect import bisect_left
 import pyximport; pyximport.install(setup_args={"include_dirs":np.get_include()})
 from nucleoatac.multinomial_cov import calculateCov
-#from nucleoatac.multionomial_cov2 import calculateCov
 from nucleoatac.Occupancy import OccupancyTrack
 from pyatac.tracks import Track, CoverageTrack
 from pyatac.chunk import Chunk
