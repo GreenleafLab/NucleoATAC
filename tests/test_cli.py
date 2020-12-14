@@ -9,10 +9,6 @@ class NucleoATACTestCase(TestCase):
     """
     def setUp(self):
         self.parser = nucleoatac_parser()
-    def test_run(self):
-        cmd = "nucleoatac run --bam example/example.bam --bed example/example.bed --fasta example/sacCer3.fa --out example/_results/example --cores 2"
-        args = self.parser.parse_args(cmd.split()[1:])
-        nucleoatac_main(args)
     def test_occ(self):
         cmd = "nucleoatac occ --bam example/example.bam --bed example/example.bed --fasta example/sacCer3.fa --out example/_results/example --cores 2"
         args = self.parser.parse_args(cmd.split()[1:])
@@ -31,6 +27,10 @@ class NucleoATACTestCase(TestCase):
         nucleoatac_main(args)
     def test_nfr(self):
         cmd = "nucleoatac nfr --bed example/example.bed --occ_track example/example_results/example.occ.bedgraph.gz --calls example/example_results/example.nucmap_combined.bed.gz --out example/_results/example --bam example/example.bam --fasta example/sacCer3.fa"
+        args = self.parser.parse_args(cmd.split()[1:])
+        nucleoatac_main(args)
+    def test_run(self):
+        cmd = "nucleoatac run --bam example/example.bam --bed example/example.bed --fasta example/sacCer3.fa --out example/_results/example --cores 2"
         args = self.parser.parse_args(cmd.split()[1:])
         nucleoatac_main(args)
 

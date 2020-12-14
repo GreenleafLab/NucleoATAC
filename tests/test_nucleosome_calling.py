@@ -38,6 +38,7 @@ class Test_NuclesomeCalling(TestCase):
         """test nucleosome positions"""
         self.assertTrue(len(self.out['nucpos']) == 3)
         self.assertTrue(self.out['nucpos'][0].start == 706773)
+        self.assertTrue(abs(self.out['nucpos'][0].z - 7.7175) < 0.001)
         self.assertTrue(self.out['nucpos'][0].nfr_cov == 8.0)
         self.assertTrue(self.out['nucpos'][0].nuc_cov == 51.0)
         self.assertTrue(abs(self.out['nucpos'][0].nuc_signal - 16.7928) < 0.001)
