@@ -61,9 +61,7 @@ class BiasTrack(Track):
                                                          self.bias_mat.start + offset,
                                                          self.bias_mat.end - offset),
                                        vmat.mat,mode = 'valid')[0]
-        self.vals = self.vals * self.nuc_cov // self.cov.vals
-
-
+        self.vals = self.vals * self.nuc_cov / self.cov.vals
 
 class SignalDistribution:
     """Class for determining distribution of signal"""
@@ -145,7 +143,7 @@ class Nucleosome(Chunk):
         def err_func(pars,y):
             """error function for normal fit; to be used for fitNorm"""
             x = np.linspace(0,len(y)-1,len(y))
-            return sum((addNorms(x, pars) - y)**2)
+            return np.sum((addNorms(x, pars) - y)**2)
         def fitNorm(guess, bound, sig):
             """Fit a normal to the signal with lower and upperbounds to sd"""
             a = (sig,)

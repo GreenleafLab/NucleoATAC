@@ -86,7 +86,7 @@ def get_pwm(args, bases = 50000, splitsize = 1000):
         left = result[:,0:(args.flank + 1)]
         right = result[:,args.flank:]
         rightflipped = np.fliplr(np.flipud(right))
-        combined = (left + rightflipped) // 2
+        combined = (left + rightflipped) / 2
         result = np.hstack((combined, np.fliplr(np.flipud(combined[:,0:args.flank]))))
     #save
     pwm = PWM(result, args.flank, args.flank, params.nucleotides)

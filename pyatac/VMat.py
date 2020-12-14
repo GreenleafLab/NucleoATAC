@@ -122,7 +122,7 @@ class VMat:
                     self.one_d[center-(self.w-i)+(ilen//2)]+= val * 0.5
                     self.one_d[center-(self.w-i)-(ilen//2+1)]+= val * 0.5
                     self.one_d[center-(self.w-i)+(ilen//2+1)]+= val * 0.5
-        self.one_d = self.one_d // sum(self.one_d)
+        self.one_d = self.one_d / np.sum(self.one_d)
     def plot(self, mat=None, title=None, filename=None):
         """Plot current main matrix or specified matrix (of same dimensions)"""
         if mat is None:
@@ -149,8 +149,8 @@ class VMat:
         fig = plt.figure()
         xlim = len(self.one_d)//2
         plt.plot(list(range(-xlim,xlim+1)),self.one_d)
-        plt.vlines(-73,0,max(self.one_d)*1.1,linestyles='dashed')
-        plt.vlines(73,0,max(self.one_d)*1.1,linestyles='dashed')
+        plt.vlines(-73,0,np.max(self.one_d)*1.1,linestyles='dashed')
+        plt.vlines(73,0,np.max(self.one_d)*1.1,linestyles='dashed')
         plt.xlabel("Position relative to dyad")
         plt.ylabel("Insertion Frequency")
         if filename:
@@ -166,7 +166,7 @@ class VMat:
         """plot the insert size disribution in the main matrix"""
         fig = plt.figure()
         ins = np.sum(self.mat,axis=1)
-        ins = ins // sum(ins)
+        ins = ins / np.sum(ins)
         plt.plot(list(range(self.lower,self.upper)),ins)
         plt.xlabel("Insert Size")
         plt.ylabel("Frequency")

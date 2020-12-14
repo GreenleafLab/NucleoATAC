@@ -108,7 +108,7 @@ def get_signal(args):
         result = sum(tmp)
     if not args.no_agg:
         if args.norm:
-            result = result // len(chunks)
+            result = result / len(chunks)
         fig = plt.figure()
         plt.plot(list(range(-args.up,args.down+1)),result)
         plt.xlabel("Position relative to Site")
