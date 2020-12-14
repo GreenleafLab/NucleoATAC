@@ -5,12 +5,10 @@ Created on Mon May 12 14:40:53 2014
 @author: alicia
 """
 
-from __future__ import division
 import numpy as np
 cimport numpy as np
 cimport cython
 
-#DTYPE = np.float
 ctypedef np.float_t DTYPE_t
 
 @cython.boundscheck(False)
@@ -19,6 +17,7 @@ def calculateCov(np.ndarray[DTYPE_t, ndim=1] p, np.ndarray[DTYPE_t, ndim=1] v, i
         raise ValueError("p and v must be same shape")
     cdef DTYPE_t value
     cdef unsigned int i, j
+    value = 0
     for i in range(p.shape[0]):
         for j in range(i,p.shape[0]):
             if i==j:
