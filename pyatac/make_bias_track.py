@@ -23,7 +23,7 @@ def _biasHelper(arg):
         bias = InsertionBiasTrack(chunk.chrom, chunk.start, chunk.end)
         bias.computeBias(params.fasta, params.chrs, params.pwm)
     except Exception as e:
-        print('Caught exception when processing:\n'+  chunk.asBed()+"\n")
+        print(('Caught exception when processing:\n'+  chunk.asBed()+"\n"))
         traceback.print_exc()
         print()
         raise e
@@ -36,7 +36,7 @@ def _writeBias(track_queue, out):
         for track in iter(track_queue.get, 'STOP'):
             track.write_track(out_handle)
             track_queue.task_done()
-    except Exception, e:
+    except Exception as e:
         print('Caught exception when writing insertion track\n')
         traceback.print_exc()
         print()
@@ -61,14 +61,16 @@ def make_bias_track(args, bases = 500000, splitsize = 1000):
         else:
             args.out = '.'.join(os.path.basename(args.fasta).split('.')[0:-1])
     params = _BiasParams(args.fasta, args.pwm)
+
     if args.bed is None:
         chunks = ChunkList.convertChromSizes(params.chrs, splitsize = splitsize)
-        sets = chunks.split(items = bases/splitsize)
+        sets = chunks.split(items = bases//splitsize)
     else:
         chunks = ChunkList.read(args.bed)
-        chunks.checkChroms(params.chrs.keys())
+        chunks.checkChroms(list(params.chrs.keys()))
         chunks.merge()
         sets = chunks.split(bases = bases)
+
     maxQueueSize = max(2,int(2 * bases / np.mean([chunk.length() for chunk in chunks])))
     pool = mp.Pool(processes = max(1,args.cores-1))
     out_handle = open(args.out + '.Scores.bedgraph','w')
@@ -77,7 +79,7 @@ def make_bias_track(args, bases = 500000, splitsize = 1000):
     write_process = mp.Process(target = _writeBias, args=(write_queue, args.out))
     write_process.start()
     for j in sets:
-        tmp = pool.map(_biasHelper, zip(j,itertools.repeat(params)))
+        tmp = pool.map(_biasHelper, list(zip(j,itertools.repeat(params))))
         for track in tmp:
             write_queue.put(track)
     pool.close()

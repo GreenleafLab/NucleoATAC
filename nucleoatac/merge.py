@@ -23,7 +23,7 @@ class MergedNuc(Chunk):
         self.reads = reads
         self.source = source
     def asBed(self):
-        out = "\t".join(map(str,[self.chrom,self.start,self.end,self.occ,self.occ_lower,self.occ_upper,self.reads, self.source])) 
+        out = "\t".join(map(str,[self.chrom,self.start,self.end,self.occ,self.occ_lower,self.occ_upper,self.reads, self.source]))
         return out
     def write(self, handle):
         """write bed line for peak"""
@@ -36,7 +36,7 @@ class NucList(ChunkList):
     def read(bedfile, source, min_occ = 0):
         """Make a list of chunks from a tab-delimited bedfile"""
         if bedfile[-3:] == '.gz':
-            infile = gzip.open(bedfile,"r")
+            infile = gzip.open(bedfile,"rt")
         else:
             infile = open(bedfile,"r")
         out = NucList()
@@ -103,7 +103,7 @@ def run_merge(args):
     pysam.tabix_compress(args.out + '.nucmap_combined.bed', args.out + '.nucmap_combined.bed.gz',force = True)
     shell_command('rm ' + args.out + '.nucmap_combined.bed')
     pysam.tabix_index(args.out + '.nucmap_combined.bed.gz', preset = "bed", force = True)
- 
+
 
 
 

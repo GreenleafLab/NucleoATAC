@@ -33,13 +33,13 @@ def run_vprocess(args):
     #Make extra plots if requeted
     if args.plot_extra:
         vmat.autoCorr()
-        vmat.plot_auto(args.out+'.vplot.Autocorr.eps')
+        vmat.plot_auto(args.out+'.vplot.Autocorr.pdf')
         vmat.converto1d()
-        vmat.plot_1d(args.out+'.vplot.InsertionProfile.eps')
-        vmat.plot_insertsize(args.out+'.vplot.InsertSizes.eps')
+        vmat.plot_1d(args.out+'.vplot.InsertionProfile.pdf')
+        vmat.plot_insertsize(args.out+'.vplot.InsertSizes.pdf')
     #make plot and save
     vmat.save(args.out+".VMat")
-    vmat.plot(filename = args.out+".VMat.eps")
+    vmat.plot(filename = args.out+".VMat.pdf")
 
 
 

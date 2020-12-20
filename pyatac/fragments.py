@@ -1,26 +1,21 @@
 #### Import needed modules #####
 import pyatac.seq as seq
 import numpy as np
-cimport numpy as np
-cimport cython
-from pysam.libcalignmentfile cimport AlignmentFile, AlignedSegment
-from pysam.libcfaidx cimport FastaFile
+from pysam import AlignmentFile, AlignedSegment
+from pysam import FastaFile
 
 DTYPE = np.float
-ctypedef np.float_t DTYPE_t
-
 
 #### Import needed modules #####
 #import pysam
 
-@cython.boundscheck(False)
-def makeFragmentMat(str bamfile, str chrom, int start, int end, int lower, int upper, int atac = 1):
-    cdef int nrow = upper - lower
-    cdef int ncol = end - start
-    cdef np.ndarray[DTYPE_t, ndim=2] mat = np.zeros( (nrow, ncol), dtype = DTYPE)
-    cdef AlignmentFile bamHandle = AlignmentFile(bamfile)
-    cdef AlignedSegment read
-    cdef int l_pos, ilen, row, col
+def makeFragmentMat(bamfile, chrom, start, end, lower, upper, atac = 1):
+    nrow = upper - lower
+    ncol = end - start
+    mat = np.zeros( (nrow, ncol), dtype = DTYPE)
+    bamHandle = AlignmentFile(bamfile)
+   
+    
     for read in bamHandle.fetch(chrom, max(0, start - upper), end + upper):
         if read.is_proper_pair and not read.is_reverse:
             if atac:
@@ -33,19 +28,16 @@ def makeFragmentMat(str bamfile, str chrom, int start, int end, int lower, int u
                 l_pos = read.pos
                 ilen = abs(read.template_length)
             row = ilen - lower
-            col = (ilen-1)/2 + l_pos - start
+            col = (ilen-1)//2 + l_pos - start
             if col >= 0 and col < ncol and row < nrow and row >= 0:
                 mat[row, col] += 1
     bamHandle.close()
     return mat
 
-@cython.boundscheck(False)
-def getInsertions(str bamfile, str chrom, int start, int end, int lower, int upper, int atac = 1):
-    cdef int npos = end - start
-    cdef np.ndarray[DTYPE_t, ndim=1] mat = np.zeros(npos, dtype = DTYPE)
-    cdef AlignmentFile bamHandle = AlignmentFile(bamfile)
-    cdef AlignedSegment read
-    cdef int l_pos, ilen, r_pos
+def getInsertions(bamfile, chrom, start, end, lower, upper, atac = 1):
+    npos = end - start
+    mat = np.zeros(npos, dtype = DTYPE)
+    bamHandle = AlignmentFile(bamfile)
     for read in bamHandle.fetch(chrom, max(0, start - upper), end + upper):
         if read.is_proper_pair and not read.is_reverse:
             if atac:
@@ -66,15 +58,11 @@ def getInsertions(str bamfile, str chrom, int start, int end, int lower, int upp
     bamHandle.close()
     return mat
 
-
-@cython.boundscheck(False)
-def getStrandedInsertions(str bamfile, str chrom, int start, int end, int lower, int upper, int atac = 1):
-    cdef int npos = end - start
-    cdef np.ndarray[DTYPE_t, ndim=1] matplus = np.zeros(npos, dtype = DTYPE)
-    cdef np.ndarray[DTYPE_t, ndim=1] matminus = np.zeros(npos, dtype = DTYPE)
-    cdef AlignmentFile bamHandle = AlignmentFile(bamfile)
-    cdef AlignedSegment read
-    cdef int l_pos, ilen, r_pos
+def getStrandedInsertions(bamfile, chrom, start, end, lower, upper, atac = 1):
+    npos = end - start
+    matplus = np.zeros(npos, dtype = DTYPE)
+    matminus = np.zeros(npos, dtype = DTYPE)
+    bamHandle = AlignmentFile(bamfile)
     for read in bamHandle.fetch(chrom, max(0, start - upper), end + upper):
         if read.is_proper_pair and not read.is_reverse:
             if atac:
@@ -95,15 +83,10 @@ def getStrandedInsertions(str bamfile, str chrom, int start, int end, int lower,
     bamHandle.close()
     return (matplus, matminus)
 
-
-
-@cython.boundscheck(False)
-def getAllFragmentSizes(str bamfile, int lower, int upper, int atac = 1):
-    cdef np.ndarray[DTYPE_t, ndim =1] sizes = np.zeros(upper - lower, dtype= np.float)
+def getAllFragmentSizes(bamfile, lower, upper, atac = 1):
+    sizes = np.zeros(upper - lower, dtype= np.float)
     # loop over samfile
-    cdef AlignmentFile bamHandle = AlignmentFile(bamfile)
-    cdef AlignedSegment read
-    cdef int ilen
+    bamHandle = AlignmentFile(bamfile)
     for read in bamHandle:
           if read.is_proper_pair and not read.is_reverse:
             if atac:
@@ -118,14 +101,10 @@ def getAllFragmentSizes(str bamfile, int lower, int upper, int atac = 1):
     bamHandle.close()
     return sizes
 
-
-@cython.boundscheck(False)
-def getFragmentSizesFromChunkList(chunks, str bamfile, int lower, int upper, int atac = 1):
-    cdef np.ndarray[DTYPE_t, ndim =1] sizes = np.zeros(upper - lower, dtype= np.float)
+def getFragmentSizesFromChunkList(chunks, bamfile, lower, upper, atac = 1):
+    sizes = np.zeros(upper - lower, dtype= np.float)
     # loop over samfile
-    cdef AlignmentFile bamHandle = AlignmentFile(bamfile)
-    cdef AlignedSegment read
-    cdef int ilen, l_pos, center
+    bamHandle = AlignmentFile(bamfile)
     for chunk in chunks:
         for read in bamHandle.fetch(chunk.chrom, max(0, chunk.start - upper), chunk.end + upper):
             if read.is_proper_pair and not read.is_reverse:
@@ -138,9 +117,9 @@ def getFragmentSizesFromChunkList(chunks, str bamfile, int lower, int upper, int
                 else:
                     l_pos = read.pos
                     ilen = abs(read.template_length)
-                center = l_pos + (ilen-1)/2
+                center = l_pos + (ilen-1) // 2
                 if ilen < upper and ilen >= lower and center >= chunk.start and center < chunk.end:
-                    sizes[ilen - lower]+=1
+                    sizes[ilen - lower] += 1
     bamHandle.close()
     return sizes
 

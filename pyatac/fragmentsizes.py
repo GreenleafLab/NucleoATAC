@@ -5,12 +5,7 @@ Classes for working with fragment distribution
 """
 
 import numpy as np
-import pyximport
-pyximport.install(setup_args={"include_dirs":np.get_include()})
 from pyatac.fragments import getAllFragmentSizes, getFragmentSizesFromChunkList
-
-
-
 
 class FragmentSizes:
     """Class for storing fragment size distribution"""
@@ -71,7 +66,7 @@ class FragmentSizes:
             elif state == 'upper':
                 upper = int(line.strip('\n'))
             elif state == 'sizes':
-                fragmentsizes = np.array(map(float,line.rstrip("\n").split("\t")))
+                fragmentsizes = np.array(list(map(float,line.rstrip("\n").split("\t"))))
         try:
             new = FragmentSizes(lower, upper, vals = fragmentsizes)
         except NameError:

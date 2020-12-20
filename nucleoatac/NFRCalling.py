@@ -89,7 +89,7 @@ class NFRChunk(Chunk):
         if self.chrom in tbx.contigs:
             for row in tbx.fetch(self.chrom, self.start, self.end, parser = pysam.asTuple()):
                 nucs.append(int(row[1]))
-        for j in xrange(1,len(nucs)):
+        for j in range(1,len(nucs)):
             left = nucs[j-1] + 73
             right = nucs[j] - 72
             if right <= left:
@@ -106,7 +106,7 @@ class NFRChunk(Chunk):
         self.findNFRs()
     def removeData(self):
         """remove data from chunk-- deletes all attributes"""
-        names = self.__dict__.keys()
+        names = list(self.__dict__.keys())
         for name in names:
             delattr(self,name)
 

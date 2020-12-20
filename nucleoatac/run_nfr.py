@@ -31,7 +31,7 @@ def _nfrHelper(arg):
             out = nfr.nfrs
         nfr.removeData()
     except Exception as e:
-        print('Caught exception when processing:\n'+  chunk.asBed()+"\n")
+        print(('Caught exception when processing:\n'+  chunk.asBed()+"\n"))
         traceback.print_exc()
         print()
         raise e
@@ -45,7 +45,7 @@ def _writeNFR(pos_queue, out):
             for pos in poslist:
                 pos.write(out_handle)
             pos_queue.task_done()
-    except Exception, e:
+    except Exception as e:
         print('Caught exception when writing occupancy track\n')
         traceback.print_exc()
         print()
@@ -59,7 +59,7 @@ def _writeIns(track_queue, out):
         for track in iter(track_queue.get, 'STOP'):
             track.write_track(out_handle)
             track_queue.task_done()
-    except Exception, e:
+    except Exception as e:
         print('Caught exception when writing insertion track\n')
         traceback.print_exc()
         print()
@@ -104,7 +104,7 @@ def run_nfr(args):
         ins_process = mp.Process(target = _writeIns, args=(ins_queue, args.out))
         ins_process.start()
     for j in sets:
-        tmp = pool1.map(_nfrHelper, zip(j,itertools.repeat(params)))
+        tmp = pool1.map(_nfrHelper, list(zip(j,itertools.repeat(params))))
         for result in tmp:
             if params.ins_track is None:
                 nfr_queue.put(result[0])

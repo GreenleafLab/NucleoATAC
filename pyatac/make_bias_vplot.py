@@ -31,10 +31,9 @@ def _biasVplotHelper(arg):
     for chunk in chunks:
         try:
             chunk.center()
-            biastrack = InsertionBiasTrack(chunk.chrom, chunk.start - params.flank - 1 - (params.upper/2),
-                                                chunk.end + params.flank + params.upper/2+1)
+            biastrack = InsertionBiasTrack(chunk.chrom, chunk.start-params.flank-1-(params.upper//2), chunk.end+params.flank+params.upper//2+1)
             if params.bg is not None:
-                biastrack.read_track(params.bg, empty = 0)
+                biastrack.read_track(params.bg, empty=0)
             else:
                 biastrack.computeBias(params.fasta, params.chrs, params.pwm)
             biasmat = BiasMat2D(chunk.chrom, chunk.start - params.flank - 1, chunk.end + params.flank,
@@ -48,7 +47,7 @@ def _biasVplotHelper(arg):
             else:
                 mat += add
         except Exception as e:
-            print('Caught exception when processing:\n' + chunk.asBed() + "\n")
+            print(('Caught exception when processing:\n' + chunk.asBed() + "\n"))
             traceback.print_exc()
             print()
             raise e
@@ -80,19 +79,19 @@ def make_bias_vplot(args):
                                 sizes = args.sizes, scale = args.scale,
                                 pwm = args.pwm, fasta = args.fasta)
     pool = Pool(processes = args.cores)
-    tmp = pool.map(_biasVplotHelper, zip(sets,itertools.repeat(params)))
+    tmp = pool.map(_biasVplotHelper, list(zip(sets,itertools.repeat(params))))
     pool.close()
     pool.join()
     result = sum(tmp)
     ##Turn matrix into VMat object
     vmat=VMat(result,args.lower,args.upper)
-    vmat.plot(filename=args.out+".Bias.Vplot.eps")
+    vmat.plot(filename=args.out+".Bias.Vplot.pdf")
     if args.plot_extra:
         ##get insertion profile represented by vplot
         vmat.converto1d()
-        vmat.plot_1d(filename=args.out+'.InsertionProfile.eps')
+        vmat.plot_1d(filename=args.out+'.InsertionProfile.pdf')
         #get insert size dstribution represented by vplot
-        vmat.plot_insertsize(filename= args.out + ".InsertSizes.eps")
+        vmat.plot_insertsize(filename= args.out + ".InsertSizes.pdf")
     ##save
     vmat.save(args.out+".Bias.VMat")
 

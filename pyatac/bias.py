@@ -66,7 +66,7 @@ class PWM:
             elif state == 'nucleotides':
                 nucleotides = line.strip('\n').split()
             elif state == 'mat':
-                mat.append(map(float,line.strip('\n').split('\t')))
+                mat.append(list(map(float,line.strip('\n').split('\t'))))
         infile.close()
         try:
             new = PWM(np.array(mat), up, down, nucleotides)
