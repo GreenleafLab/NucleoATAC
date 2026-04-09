@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 General tools for dealing with ATAC-Seq data using Python.
 
@@ -37,7 +37,7 @@ def smooth(sig, window_len, window='flat', sd = None, mode = 'valid',
     if window=='gaussian' and sd is None:
         sd = (window_len-1)/6.0
     if window=="gaussian":
-        w = signal.gaussian(window_len,sd)
+        w = signal.windows.gaussian(window_len,sd)
     if window=="flat":
         w = np.ones(window_len)
     sig_nonan = copy(sig)
@@ -90,7 +90,7 @@ def call_peaks(sigvals, min_signal = 0, sep = 120, boundary = None, order =1):
             replace = min(sigvals[~np.isnan(sigvals)])
             sigvals[np.isnan(sigvals)]=replace
     if boundary is None:
-        boundary = sep/2
+        boundary = sep//2
     random = np.random.RandomState(seed = 25)
     l = len(sigvals)
     peaks = signal.argrelmax(sigvals *(1+

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Script to make V-plot
 
@@ -31,8 +31,8 @@ def _biasVplotHelper(arg):
     for chunk in chunks:
         try:
             chunk.center()
-            biastrack = InsertionBiasTrack(chunk.chrom, chunk.start - params.flank - 1 - (params.upper/2),
-                                                chunk.end + params.flank + params.upper/2+1)
+            biastrack = InsertionBiasTrack(chunk.chrom, chunk.start - params.flank - 1 - (params.upper//2),
+                                                chunk.end + params.flank + params.upper//2+1)
             if params.bg is not None:
                 biastrack.read_track(params.bg, empty = 0)
             else:
@@ -44,11 +44,11 @@ def _biasVplotHelper(arg):
             add = biasmat.get(start = chunk.start - params.flank, end = chunk.end + params.flank,
                                 flip = (chunk.strand == "-"))
             if params.scale:
-                mat += add/np.sum(add)
+                mat += add//np.sum(add)
             else:
                 mat += add
         except Exception as e:
-            print('Caught exception when processing:\n' + chunk.asBed() + "\n")
+            print(('Caught exception when processing:\n' + chunk.asBed() + "\n"))
             traceback.print_exc()
             print()
             raise e
@@ -80,7 +80,7 @@ def make_bias_vplot(args):
                                 sizes = args.sizes, scale = args.scale,
                                 pwm = args.pwm, fasta = args.fasta)
     pool = Pool(processes = args.cores)
-    tmp = pool.map(_biasVplotHelper, zip(sets,itertools.repeat(params)))
+    tmp = pool.map(_biasVplotHelper, list(zip(sets,itertools.repeat(params))))
     pool.close()
     pool.join()
     result = sum(tmp)

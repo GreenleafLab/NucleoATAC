@@ -41,7 +41,7 @@ class Test_BiasMat(TestCase):
         self.assertTrue(abs(correct - self.biasmat.mat[51,220]) < 0.01*correct)
     def test_normByInsertDist(self):
         """test that normalization by insert distribution works as expected"""
-        isizes = FragmentSizes(lower=100,upper=200, vals = np.array(range(100,200)))
+        isizes = FragmentSizes(lower=100,upper=200, vals = np.array(list(range(100,200))))
         self.biasmat.normByInsertDist(isizes)
         a1 = self.biastrack.get(pos = self.biasmat.start -50)
         a2 = self.biastrack.get(pos = self.biasmat.start + 50)

@@ -71,7 +71,7 @@ class FragmentSizes:
             elif state == 'upper':
                 upper = int(line.strip('\n'))
             elif state == 'sizes':
-                fragmentsizes = np.array(map(float,line.rstrip("\n").split("\t")))
+                fragmentsizes = np.array(list(map(float,line.rstrip("\n").split("\t"))))
         try:
             new = FragmentSizes(lower, upper, vals = fragmentsizes)
         except NameError:

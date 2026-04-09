@@ -4,17 +4,16 @@ General tools for dealing with ATAC-Seq data using Python.
 @author: Alicia Schep, Greenleaf Lab, Stanford University
 """
 
-from pkg_resources import resource_filename
 import os
 import numpy as np
 import scipy.signal as signal
 import pyatac.seq as seq
+from importlib.resources import files
 from pyatac.tracks import Track
 from pyatac.utils import smooth
 
-
 def pwm_parse(name):
-    out = resource_filename('pyatac.pwm', name + '.PWM.txt')
+    out = files('pyatac.pwm').joinpath(name + '.PWM.txt')
     if os.path.isfile(out):
         return out
     else:
@@ -66,7 +65,7 @@ class PWM:
             elif state == 'nucleotides':
                 nucleotides = line.strip('\n').split()
             elif state == 'mat':
-                mat.append(map(float,line.strip('\n').split('\t')))
+                mat.append(list(map(float,line.strip('\n').split('\t'))))
         infile.close()
         try:
             new = PWM(np.array(mat), up, down, nucleotides)
@@ -112,11 +111,11 @@ class InsertionBiasTrack(Track):
         else:
             ebias = self.vals
         smoothed = smooth(ebias,windowlen, window, norm = False)
-        flank = windowlen/2
+        flank = windowlen//2
         if self.log:
-            self.vals = np.log(ebias[flank:-flank]/(smoothed-ebias[flank:-flank]))
+            self.vals = np.log(ebias[flank:-flank]//(smoothed-ebias[flank:-flank]))
         else:
-            self.vals = ebias[flank:-flank]/(smoothed-ebias[flank:-flank])
+            self.vals = ebias[flank:-flank]//(smoothed-ebias[flank:-flank])
         self.start = self.start + flank
         self.end = self.end - flank
 
