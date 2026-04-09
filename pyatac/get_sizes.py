@@ -30,7 +30,7 @@ def get_sizes(args):
     if not args.no_plot:
         #make figure
         fig = plt.figure()
-        plt.plot(range(sizes.lower,sizes.upper),sizes.get(sizes.lower,sizes.upper),label = args.out)
+        plt.plot(list(range(sizes.lower,sizes.upper)),sizes.get(sizes.lower,sizes.upper),label = args.out)
         plt.xlabel("Fragment Size")
         plt.ylabel("Frequency")
         fig.savefig(args.out+'.fragmentsizes.eps')

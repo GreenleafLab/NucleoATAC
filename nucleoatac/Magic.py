@@ -1,3 +1,3 @@
-from pkg_resources import resource_filename
+from importlib.resources import files
 
-default_vplot = resource_filename('nucleoatac.vplot','standard_vplot.VMat')
+default_vplot = files("nucleoatac.vplot").joinpath("standard_vplot.VMat")

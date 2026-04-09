@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from pyatac.tracks import InsertionTrack
 import pyximport; pyximport.install(setup_args={"include_dirs":np.get_include()})
-from fragments import makeFragmentMat
+from pyatac.fragments import makeFragmentMat
 
 class ChunkMat2D:
     """Class that stores fragments in 2D matrix according to
@@ -74,12 +74,12 @@ class ChunkMat2D:
     def getIns(self):
         """Collape matrix into insertions.  Will reduce span on chromosome"""
         pattern = np.zeros((self.upper-self.lower,self.upper + (self.upper-1)%2))
-        mid = self.upper/2
+        mid = self.upper//2
         for i in range(self.lower,self.upper):
-            pattern[i-self.lower,mid+(i-1)/2]=1
-            pattern[i-self.lower,mid-(i/2)]=1
+            pattern[i-self.lower,mid+(i-1)//2]=1
+            pattern[i-self.lower,mid-(i//2)]=1
         ins = signal.correlate2d(self.mat,pattern,mode="valid")[0]
-        insertion_track = InsertionTrack(self.chrom,self.start + pattern.shape[1]/2, self.end - (pattern.shape[1]/2))
+        insertion_track = InsertionTrack(self.chrom,self.start + pattern.shape[1]//2, self.end - (pattern.shape[1]//2))
         insertion_track.assign_track(ins)
         return insertion_track
     def plot(self, filename = None, title = None, lower = None,
@@ -117,7 +117,7 @@ class FragmentMat2D(ChunkMat2D):
     def updateMat(self, fragment):
         row = fragment.insert - self.lower
         if self.mode == "centers":
-            col = (fragment.insert-1)/2 + fragment.left - self.start
+            col = (fragment.insert-1)//2 + fragment.left - self.start
             if col>=0 and col<self.ncol and row<self.nrow and row>=0:
                 self.mat[row, col] += 1
         else:
@@ -139,16 +139,16 @@ class BiasMat2D(ChunkMat2D):
         self.mat = np.ones(self.mat.shape)
     def makeBiasMat(self, bias_track):
         """Make 2D matrix representing sequence bias preferences"""
-        offset = self.upper/2
+        offset = self.upper//2
         bias = bias_track.get(self.start-offset,self.end+offset)
         if not bias_track.log:
             nonzero = np.where(bias !=0)[0]
             bias = np.log(bias + min(bias[nonzero]))
         pattern = np.zeros((self.upper-self.lower,self.upper + (self.upper-1)%2))
-        mid = self.upper/2
+        mid = self.upper//2
         for i in range(self.lower,self.upper):
-            pattern[i-self.lower,mid+(i-1)/2]=1
-            pattern[i-self.lower,mid-(i/2)]=1
+            pattern[i-self.lower,mid+(i-1)//2]=1
+            pattern[i-self.lower,mid-(i//2)]=1
         for i in range(self.upper-self.lower):
             self.mat[i]=np.exp(np.convolve(bias,pattern[i,:],mode='valid'))
     def normByInsertDist(self, insertsizes):

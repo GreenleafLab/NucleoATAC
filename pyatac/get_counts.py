@@ -32,12 +32,12 @@ def get_counts(args):
             if read.is_proper_pair and not read.is_reverse:
                 if args.atac:
                     #get left position
-                    l_pos = read.pos + 4
+                    l_pos = read.reference_start + 4
                     #get insert size
                     #correct by 8 base pairs to be inserion to insertion
                     ilen = abs(read.template_length) - 8
                 else:
-                    l_pos = read.pos
+                    l_pos = read.reference_start
                     ilen = abs(read.template_length)
                 r_pos = l_pos + ilen - 1
                 if _between(ilen, args.lower, args.upper) and (_between(l_pos, chunk.start, chunk.end) or _between(r_pos, chunk.start, chunk.end)):

@@ -36,7 +36,7 @@ class NucList(ChunkList):
     def read(bedfile, source, min_occ = 0):
         """Make a list of chunks from a tab-delimited bedfile"""
         if bedfile[-3:] == '.gz':
-            infile = gzip.open(bedfile,"r")
+            infile = gzip.open(bedfile,"rt")
         else:
             infile = open(bedfile,"r")
         out = NucList()

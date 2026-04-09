@@ -1,0 +1,38 @@
+[build-system]
+requires = [
+    "setuptools>=68",
+    "wheel",
+    "cython>=3.0",
+    "numpy>=1.26,<2.1"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "NucleoATAC"
+version = "1.0.0"
+description = "Nucleosome calling from ATAC-seq"
+authors = [
+    { name = "Alicia Schep", email = "aschep@stanford.edu" }
+]
+license = { text = "MIT" }
+requires-python = ">=3.11"
+
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "pysam>=0.22",
+    "matplotlib>=3.8"
+]
+
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+
+[project.scripts]
+nucleoatac = "nucleoatac.cli:main"
+pyatac = "pyatac.cli:main"
